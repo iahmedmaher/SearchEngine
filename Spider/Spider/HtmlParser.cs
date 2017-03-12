@@ -1,0 +1,137 @@
+﻿using System;
+using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text.RegularExpressions;
+using HtmlAgilityPack;
+
+namespace Spider
+{
+    class HtmlParser
+    {
+        /*** Ranking:
+           * Title (12) -> H1 (10) -> H2 (8) -> H3 (6) -> H4 (5) -> H5 (5) -> H6 (5) -> b or strong (3) -> P or others (1)
+           *
+           ***/
+
+        private static readonly Dictionary<string, int> Ranker = new Dictionary<string, int>(){
+           {"title",12},
+           {"h1",10},
+           {"h2",8},
+           {"h3",6},
+           {"h4",5},
+           {"h5",5},
+           {"h6",5},
+           {"b",3},
+           {"strong",3},
+           {"body",1}
+        };
+
+        private static HashSet<string> stopwords;
+        
+        private HtmlParser()
+        {
+            
+        }
+
+        public static void IntializeStopWords()
+        {
+            string FileName = Properties.Settings.Default.PATH + Properties.Settings.Default.StopWordsFile;
+            Stream TestFileStream = File.OpenRead(FileName);
+            BinaryFormatter deserializer = new BinaryFormatter();
+            stopwords = (HashSet<string>)deserializer.Deserialize(TestFileStream);
+            TestFileStream.Close();
+        }
+
+        private static string FixLink(string BaseUrl,string link)
+        {
+            if (!link.StartsWith(@"http://") && !link.StartsWith(@"https://") && !link.StartsWith(@"mailto:"))
+            {
+                if (link.StartsWith("//"))
+                    return "http:" + link;
+                else
+                    return new Uri(new Uri(BaseUrl), link).AbsoluteUri;
+            }
+
+            return link;
+        }
+
+        public static IEnumerable<String> GetOutGoingLinks(string link, string html)
+        {
+            HtmlDocument doc = new HtmlDocument();
+
+            doc.LoadHtml(html);
+
+            var links_nodes = doc.DocumentNode.SelectNodes("//a[@href]");
+            string current_link;
+            if (links_nodes != null)
+            {
+                foreach (var node in links_nodes)
+                {
+                    current_link = FixLink(link, node.Attributes["href"].Value);
+                    if (current_link.StartsWith("http"))
+                        yield return current_link;
+                }
+            }
+            
+        }
+
+        public static string GetTitle(string html)
+        {
+            HtmlDocument doc = new HtmlDocument();
+            doc.LoadHtml(html);
+            var title = doc.DocumentNode.SelectSingleNode("//title");
+            if (title != null)
+                return HtmlEntity.DeEntitize(title.InnerHtml);
+            return null;
+        }
+
+        public static Dictionary<string, int> KeywordsVectors(string html)
+        {
+            HtmlDocument doc=new HtmlDocument();
+
+            doc.LoadHtml(html);
+
+            doc.DocumentNode.Descendants().Where(n => n.Name == "script" || n.Name == "style" || n.NodeType == HtmlAgilityPack.HtmlNodeType.Comment).ToList().ForEach(n => n.Remove());
+
+            Dictionary<string,int> dictionary=new Dictionary<string,int>();
+
+            string word;
+
+            foreach (var NodeType in Ranker)
+            {
+                var Nodes = doc.DocumentNode.Descendants(NodeType.Key);
+
+                if (Nodes.Count() == 0)
+                    continue;
+
+                foreach (var Node in Nodes)
+                {
+                    var KeywordsMatches = Regex.Matches(HtmlEntity.DeEntitize(
+                        string.Join(" ", Node.Descendants()
+                        .Where(n => !n.HasChildNodes && !string.IsNullOrWhiteSpace(n.InnerText))
+                        .Select(n => n.InnerText))
+                        ), @"\b\w{2,}\b", RegexOptions.Compiled);
+
+                    foreach (Match KeywordMatch in KeywordsMatches)
+                    {
+                        word = KeywordMatch.Value.ToLowerInvariant();
+
+                        if (!stopwords.Contains(word))
+                        {
+                            if (dictionary.ContainsKey(word))
+                                dictionary[word] += NodeType.Value;
+                            else
+                                dictionary.Add(word, NodeType.Value);
+                        }
+                    }
+                }
+
+                Nodes.ToList().ForEach(N => N.Remove());
+            }
+
+            return dictionary;
+        }
+    }
+}

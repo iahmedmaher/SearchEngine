@@ -1,0 +1,14 @@
+.center-container {
+	width:100%;
+	display: flex;
+  justify-content: center;
+	align-content: center;
+	flex-flow: row wrap;
+}
+.center-container-vertical {
+	margin-top:10%;
+}
+
+.flex-line-break {
+	width:100%;
+}

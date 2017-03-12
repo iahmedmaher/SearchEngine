@@ -1,0 +1,18 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="Spider.Properties" GeneratedClassName="Settings">
+  <Profiles />
+  <Settings>
+    <Setting Name="PATH" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">..\..\..\PATH\</Value>
+    </Setting>
+    <Setting Name="QueueFile" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">QueuedWork.bin</Value>
+    </Setting>
+    <Setting Name="StopWordsFile" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">StopWords.bin</Value>
+    </Setting>
+    <Setting Name="Indexer" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">Index.db</Value>
+    </Setting>
+  </Settings>
+</SettingsFile>
