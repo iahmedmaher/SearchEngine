@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Text;
 using System.Net;
@@ -35,11 +35,8 @@ namespace Spider
 
                 //request.Headers.Add(HttpRequestHeader.UserAgent, "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36");
 
-
                 using (WebResponse response = request.GetResponse())
                 {
-
-
                     if (!response.Headers[HttpResponseHeader.ContentType].Contains(ContentType))
                     {
                         return null;
@@ -49,13 +46,13 @@ namespace Spider
                     
                     using (StreamReader reader = new StreamReader(dataStream))
                     {
-                        string html = reader.ReadToEnd();
-                        Interlocked.Add(ref Totaldata, dataStream.Length);
-                        return html;
+                        MemoryStream data = new MemoryStream();
+                        dataStream.CopyTo(data);
+                        Interlocked.Add(ref Totaldata, data.Length);
+                        return Encoding.UTF8.GetString(data.ToArray());
                     }
 
                 }
-
             }
             catch (Exception)
             {
