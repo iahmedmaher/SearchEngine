@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Collections.Generic;
@@ -120,6 +120,8 @@ namespace Spider
 
                         if (!stopwords.Contains(word))
                         {
+                            IStemmer p = new Porter2();
+                            word = p.stem(word);
                             if (dictionary.ContainsKey(word))
                                 dictionary[word] += NodeType.Value;
                             else
