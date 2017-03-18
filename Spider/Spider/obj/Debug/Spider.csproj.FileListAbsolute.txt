@@ -13,3 +13,6 @@ C:\Users\karim\Downloads\CUFE\APT\Spider\Spider\obj\Debug\Spider.pdb
 C:\Users\karim\Downloads\CUFE\APT\Spider\Spider\bin\Debug\System.Data.SQLite.dll
 C:\Users\karim\Downloads\CUFE\APT\Spider\Spider\bin\Debug\System.Data.SQLite.Linq.dll
 C:\Users\karim\Downloads\CUFE\APT\Spider\Spider\bin\Debug\System.Data.SQLite.xml
+D:\Miscellaneous\Projects\SearchEngine\Spider\Spider\bin\Debug\Spider.exe.config
+D:\Miscellaneous\Projects\SearchEngine\Spider\Spider\obj\Debug\Spider.exe
+D:\Miscellaneous\Projects\SearchEngine\Spider\Spider\obj\Debug\Spider.pdb
