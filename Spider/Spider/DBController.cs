@@ -171,7 +171,13 @@ namespace Spider
 
         public void SaveToDisk()
         {
-            database.SaveToDisk();
+            lock (LinkTable)
+            {
+                lock (VectorTable)
+                {
+                    database.SaveToDisk();
+                }
+            }
         }
 
     }

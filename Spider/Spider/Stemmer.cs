@@ -135,7 +135,6 @@ namespace Spider
                 case 'u':
                 case 'y':
                     return true;
-                    break;
                 default:
                     return false;
             }
@@ -330,8 +329,6 @@ namespace Spider
                             default:
                                 sb.Replace(step2Replacements[i, 0], step2Replacements[i, 1], sb.Length - step2Replacements[i, 0].Length, step2Replacements[i, 0].Length);
                                 return;
-                                break;
-
                         }
                     }
                     else

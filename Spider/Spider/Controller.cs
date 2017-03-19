@@ -3,7 +3,7 @@ using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
-
+using System.Threading;
 
 namespace Spider
 {
@@ -77,6 +77,17 @@ namespace Spider
         {
             TManager.SetQueue(Scheduled_links);
             TManager.StartProcess();
+            new Task(PeriodicBackup).Start();
+        }
+
+        private void PeriodicBackup()
+        {
+            TimeSpan period = TimeSpan.FromMinutes(1);
+            while (!OperationCancelled)
+            {
+                this.SaveWork();
+                Thread.Sleep(period);
+            }
         }
 
         public void SaveWork()
