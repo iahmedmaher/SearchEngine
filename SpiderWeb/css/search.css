@@ -4,7 +4,14 @@
 }
 
 form {
-  margin: 30px auto 110px;
+  margin-top: 30px; 
+  margin-bottom: 30px;
+}
+
+
+form.centered  {
+	margin-right: auto;
+	margin-left: auto;
 }
 
 .search_bar {

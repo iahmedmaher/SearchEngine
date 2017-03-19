@@ -1,0 +1,49 @@
+#res-searchbar-div {
+	display: flex;
+	background-color: #fafafa;
+    border-bottom: 1px solid #ebebeb;
+    width: 100%;
+	margin: -8px;
+	margin-bottom: 10px;
+}
+
+.small-logo {
+    margin-top: 30px;
+    margin-bottom: 30px;
+    margin-left: 8px;
+    margin-right: 20px;
+}
+
+.results-search-bar {
+	margin-left: 8px;
+	margin-right: 8px;
+	width: 100%;
+}
+
+#results-area {
+	margin: 8px;
+	
+}
+
+.single-result {
+	margin: 8px;
+    font-family: arial;
+}
+
+.date {
+	color: #808080;
+}
+
+ h3 {
+    font-size: 18px;
+	margin: 0;
+}
+
+a:visited {
+	color: #609;
+}
+cite {
+    font-size: 14px;
+	color: #006621;
+	font-style: normal;
+}
