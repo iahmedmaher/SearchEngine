@@ -48,10 +48,11 @@ namespace Spider
                     
                     using (StreamReader reader = new StreamReader(dataStream))
                     {
-                        MemoryStream data = new MemoryStream();
-                        dataStream.CopyTo(data);
-                        Interlocked.Add(ref Totaldata, data.Length);
-                        return Encoding.UTF8.GetString(data.ToArray());
+                        if (Controller.OperationCancelled)
+                            return null;
+                        string html = reader.ReadToEnd();
+                        Interlocked.Add(ref Totaldata, Encoding.UTF8.GetByteCount(html));
+                        return html;
                     }
 
                 }
