@@ -114,7 +114,7 @@ namespace Spider
             {
                 Database.UpdateLinkDate(link);
                 Database.UpdateLinkTitle(link, title);
-                Database.AddPageVector(link, dictionary);
+                Database.UpdatePageVector(link, dictionary);
             }
             else
             {
