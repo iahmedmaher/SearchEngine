@@ -66,7 +66,7 @@
     <Compile Include="GUI.Designer.cs">
       <DependentUpon>GUI.cs</DependentUpon>
     </Compile>
-    <Compile Include="HtmlDownloader.cs" />
+    <Compile Include="HttpDownloader.cs" />
     <Compile Include="HtmlParser.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

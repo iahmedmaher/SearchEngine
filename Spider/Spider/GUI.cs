@@ -81,7 +81,7 @@ namespace Spider
 
             toolStripStatusLabel1.Text = "Data Received: ";
             
-            long data = HtmlDownloader.DataTransmitted;
+            long data = HttpDownloader.DataTransmitted;
             
             if (data < 1024)
                 toolStripStatusLabel1.Text += data.ToString() + " B";

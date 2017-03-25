@@ -52,7 +52,7 @@ namespace Spider
 
             reporter.Invoke(reporter.ReportStartProcessing, link);
 
-            string html = HtmlDownloader.GetHtml(link);
+            string html = HttpDownloader.GetHtml(link);
 
             if (Controller.OperationCancelled)
                 return;

@@ -7,7 +7,7 @@ using System.Threading;
 
 namespace Spider
 {
-    class HtmlDownloader
+    class HttpDownloader
     {
         private static long Totaldata = 0;
 
@@ -19,7 +19,7 @@ namespace Spider
             }
         }
 
-        private HtmlDownloader() 
+        private HttpDownloader() 
         {
 
         }
