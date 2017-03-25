@@ -57,7 +57,7 @@ namespace Spider
 
         private string FixLink(string link)
         {
-            if (!link.StartsWith(@"http://") && !link.StartsWith(@"https://") && !link.StartsWith(@"mailto:"))
+            if (!link.StartsWith(@"http://") && !link.StartsWith(@"https://") && !link.StartsWith(@"mailto:") && !link.StartsWith(@"tel:"))
             {
                 if (link.StartsWith("//"))
                     return "http:" + link;

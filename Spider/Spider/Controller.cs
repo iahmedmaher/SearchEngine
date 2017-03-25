@@ -83,9 +83,10 @@ namespace Spider
         private void PeriodicBackup()
         {
             TimeSpan period = TimeSpan.FromMinutes(5);
+            Thread.Sleep(period);
             while (!OperationCancelled)
             {
-                this.SaveWork();
+                SaveWork();
                 Thread.Sleep(period);
             }
         }
@@ -93,6 +94,7 @@ namespace Spider
         public void SaveWork()
         {
             string FileName = Properties.Settings.Default.PATH + Properties.Settings.Default.QueueFile;
+            reporter.Invoke(reporter.ReportDBSaving);
             Database.SaveToDisk();
 
             if (Scheduled_links.Count == 0)
@@ -102,6 +104,7 @@ namespace Spider
             BinaryFormatter serializer = new BinaryFormatter();
             serializer.Serialize(TestFileStream, this.Scheduled_links);
             TestFileStream.Close();
+            reporter.Invoke(reporter.ReportDBSaved);
         }
 
         public bool Seed(string seed)

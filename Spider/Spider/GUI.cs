@@ -14,6 +14,9 @@ namespace Spider
         public Action<Dictionary<string, int>> ReportStatistics { private set; get; }
         public Action ReportFinished { private set; get; }
         public Action CancellationFinished { private set; get; }
+        public Action ReportDBSaving { private set; get; }
+        public Action ReportDBSaved { private set; get; }
+
         private bool closeready;
         private Controller controller;
         private int processedcount;
@@ -28,10 +31,14 @@ namespace Spider
             ReportStatistics=new Action<Dictionary<string,int>>(this.reportstat);
             ReportFinished = new Action(this.reportfinished);
             CancellationFinished = new Action(this.closethis);
+            ReportDBSaving = new Action(this.reportDBSaveStart);
+            ReportDBSaved = new Action(this.reportDBSaveFinish);
+
             closeready = false;
             this.QueueCount.Text = "";
             this.ProcessCount.Text = "";
             this.toolStripStatusLabel1.Text = "";
+            this.toolStripStatusLabel2.Text = "";
             controller = new Controller(this);
             processedcount = controller.ProcessedCount;
         }
@@ -98,6 +105,18 @@ namespace Spider
         {
             textQueued.AppendText(link);
             QueueCount.Text = controller.QueueCount.ToString();
+        }
+
+        private void reportDBSaveStart()
+        {
+            toolStripStatusLabel2.Text = "Saving Progress..";
+            toolStripProgressBar1.Visible = true;
+        }
+
+        private void reportDBSaveFinish()
+        {
+            toolStripStatusLabel2.Text = "Database Saved at " + DateTime.Now.ToString();
+            toolStripProgressBar1.Visible = false;
         }
 
         private void button1_Click(object sender, EventArgs e)
