@@ -33,12 +33,12 @@ namespace Spider
 
         private HtmlDocument doc;
 
-        private string link;
+        private string SourceLink;
 
 
         public HtmlParser(string html, string link)
         {
-            this.link = link;
+            this.SourceLink = link;
             doc = new HtmlDocument();
 
             doc.LoadHtml(html);
@@ -55,14 +55,14 @@ namespace Spider
             TestFileStream.Close();
         }
 
-        private string FixLink(string BaseUrl,string link)
+        private string FixLink(string link)
         {
             if (!link.StartsWith(@"http://") && !link.StartsWith(@"https://") && !link.StartsWith(@"mailto:"))
             {
                 if (link.StartsWith("//"))
                     return "http:" + link;
                 else
-                    return new Uri(new Uri(BaseUrl), link).AbsoluteUri;
+                    return new Uri(new Uri(SourceLink), link).AbsoluteUri;
             }
 
             return link;
@@ -76,12 +76,12 @@ namespace Spider
             {
                 foreach (var node in links_nodes)
                 {
-                    current_link = FixLink(link, node.Attributes["href"].Value);
+                    current_link = FixLink(node.Attributes["href"].Value);
                     if (current_link.StartsWith("http"))
                         yield return current_link;
                 }
             }
-            
+
         }
 
         public string GetTitle()
@@ -102,7 +102,7 @@ namespace Spider
 
         public Dictionary<string, int> KeywordsVectors()
         {
-            Dictionary<string,int> dictionary=new Dictionary<string,int>();
+            Dictionary<string, int> dictionary = new Dictionary<string, int>();
 
             string word;
 
