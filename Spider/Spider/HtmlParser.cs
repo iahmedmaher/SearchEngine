@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Web;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Collections.Generic;
 using System.Linq;
@@ -29,10 +30,20 @@ namespace Spider
         };
 
         private static HashSet<string> stopwords;
-        
-        private HtmlParser()
+
+        private HtmlDocument doc;
+
+        private string link;
+
+
+        public HtmlParser(string html, string link)
         {
-            
+            this.link = link;
+            doc = new HtmlDocument();
+
+            doc.LoadHtml(html);
+
+            doc.DocumentNode.Descendants().Where(n => n.Name == "script" || n.Name == "style" || n.NodeType == HtmlAgilityPack.HtmlNodeType.Comment).ToList().ForEach(n => n.Remove());
         }
 
         public static void IntializeStopWords()
@@ -44,7 +55,7 @@ namespace Spider
             TestFileStream.Close();
         }
 
-        private static string FixLink(string BaseUrl,string link)
+        private string FixLink(string BaseUrl,string link)
         {
             if (!link.StartsWith(@"http://") && !link.StartsWith(@"https://") && !link.StartsWith(@"mailto:"))
             {
@@ -57,12 +68,8 @@ namespace Spider
             return link;
         }
 
-        public static IEnumerable<String> GetOutGoingLinks(string link, string html)
+        public IEnumerable<String> GetOutGoingLinks()
         {
-            HtmlDocument doc = new HtmlDocument();
-
-            doc.LoadHtml(html);
-
             var links_nodes = doc.DocumentNode.SelectNodes("//a[@href]");
             string current_link;
             if (links_nodes != null)
@@ -77,24 +84,24 @@ namespace Spider
             
         }
 
-        public static string GetTitle(string html)
+        public string GetTitle()
         {
-            HtmlDocument doc = new HtmlDocument();
-            doc.LoadHtml(html);
             var title = doc.DocumentNode.SelectSingleNode("//title");
             if (title != null)
                 return HtmlEntity.DeEntitize(title.InnerHtml);
             return null;
         }
 
-        public static Dictionary<string, int> KeywordsVectors(string html)
+
+        public string PlainText()
         {
-            HtmlDocument doc=new HtmlDocument();
+            return HttpUtility.HtmlDecode(string.Join(" ", doc.DocumentNode.Descendants()
+                        .Where(n => !n.HasChildNodes && !string.IsNullOrWhiteSpace(n.InnerText))
+                        .Select(n => n.InnerText)));
+        }
 
-            doc.LoadHtml(html);
-
-            doc.DocumentNode.Descendants().Where(n => n.Name == "script" || n.Name == "style" || n.NodeType == HtmlAgilityPack.HtmlNodeType.Comment).ToList().ForEach(n => n.Remove());
-
+        public Dictionary<string, int> KeywordsVectors()
+        {
             Dictionary<string,int> dictionary=new Dictionary<string,int>();
 
             string word;
@@ -108,7 +115,7 @@ namespace Spider
 
                 foreach (var Node in Nodes)
                 {
-                    var KeywordsMatches = Regex.Matches(HtmlEntity.DeEntitize(
+                    var KeywordsMatches = Regex.Matches(HttpUtility.HtmlDecode(
                         string.Join(" ", Node.Descendants()
                         .Where(n => !n.HasChildNodes && !string.IsNullOrWhiteSpace(n.InnerText))
                         .Select(n => n.InnerText))

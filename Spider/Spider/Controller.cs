@@ -82,7 +82,7 @@ namespace Spider
 
         private void PeriodicBackup()
         {
-            TimeSpan period = TimeSpan.FromMinutes(1);
+            TimeSpan period = TimeSpan.FromMinutes(5);
             while (!OperationCancelled)
             {
                 this.SaveWork();

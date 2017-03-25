@@ -61,11 +61,14 @@ namespace Spider
             if (html == null)
                 return;
 
+            HtmlParser doc = new HtmlParser(html, link);
+
             int linkscount = 0;
+
 
             if (!Revisted)
             {
-                IEnumerable<string> links_list = HtmlParser.GetOutGoingLinks(link, html);
+                IEnumerable<string> links_list = doc.GetOutGoingLinks();
                 HashSet<string> Distinct = new HashSet<string>(links_list);
                 StringBuilder queued = new StringBuilder();
                 
@@ -92,9 +95,11 @@ namespace Spider
                 reporter.Invoke(reporter.ReportQueued, queued.ToString());
             }
 
-            string title = HtmlParser.GetTitle(html);
+            string title = doc.GetTitle();
 
-            Dictionary<string, int> dictionary = HtmlParser.KeywordsVectors(html);
+            string PlainText = doc.PlainText();
+
+            Dictionary<string, int> dictionary = doc.KeywordsVectors();
 
             if (dictionary == null)
                 return;
@@ -115,13 +120,13 @@ namespace Spider
                 Database.UpdateLinkDate(link);
                 Database.UpdateLinkTitle(link, title);
                 Database.UpdatePageVector(link, dictionary);
+                Database.UpdatePageContent(link, PlainText);
             }
             else
             {
                 Database.AddLink(link, title, linkscount);
-
                 Database.AddPageVector(link, dictionary);
-            
+                Database.AddPageContent(link, PlainText);
             }
 
 
