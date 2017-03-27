@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using System.Text;
 using System.Net;
-using System.Linq;
+using System.Net.Mime;
 using System.Threading;
 
 namespace Spider
@@ -46,14 +46,30 @@ namespace Spider
                         return null;
                     }
 
+                    var encoding = Encoding.UTF8; //The default of the web is UTF-8
+
+                    var contentType = new ContentType(response.Headers[HttpResponseHeader.ContentType]);
+
+                    if (!String.IsNullOrEmpty(contentType.CharSet))
+                    {
+                        encoding = Encoding.GetEncoding(contentType.CharSet);
+                    }
+
+                    if (Controller.OperationCancelled)
+                    {
+                        return null;
+                    }
+
                     Stream dataStream = response.GetResponseStream();
 
-                    using (StreamReader reader = new StreamReader(dataStream))
+                    using (StreamReader reader = new StreamReader(dataStream,encoding))
                     {
                         if (Controller.OperationCancelled)
+                        {
                             return null;
+                        }
                         string html = reader.ReadToEnd();
-                        Interlocked.Add(ref Totaldata, Encoding.UTF8.GetByteCount(html));
+                        Interlocked.Add(ref Totaldata, encoding.GetByteCount(html));
                         return html;
                     }
 
