@@ -3,7 +3,13 @@
   box-sizing: border-box;
 }
 
-form {
+.advanceditem {
+	width:100%;
+	margin-top: 8px;
+    margin-bottom: 8px;
+}
+
+form.main {
   margin-top: 30px; 
   margin-bottom: 30px;
 }
@@ -61,7 +67,7 @@ form.centered  {
   right: 0;
   bottom: 22%;
   left: 4%;
-  background: url("img/search-icon.svg") no-repeat center center;
+  background: url("images/search-icon.svg") no-repeat center center;
   background-size: contain;
 }
 .search_bar button[type=submit]:hover, .search_bar button[type=submit]:focus {

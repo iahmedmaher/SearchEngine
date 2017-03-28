@@ -11,8 +11,13 @@
     <link href="css/search.css" rel="stylesheet" type="text/css">
     <link href="css/suggestions.css" rel="stylesheet" type="text/css">
     <link href="css/main.css" rel="stylesheet" type="text/css">
+	<link href="css/jquery-ui.min.css" rel="stylesheet" type="text/css">
+	
     <script src="js/jquery.min.js"></script>
-    <script src="js/suggestions.js"></script>
+	<script src="https://cdn.jsdelivr.net/jquery.ui/1.11.4/jquery-ui.min.js"></script>
+    <script src="js/main.js"></script>
+	
+	
 </head>
 <body>
     <div class="center-container center-container-vertical">
@@ -21,12 +26,51 @@
 
         <div class="flex-line-break"></div>
         <div style="width:100%">
-            <form class="search_bar large centered" action="search.php" method="GET" id="search-form">
+            <form class="search_bar large centered main" action="search.php" method="GET" id="search-form">
                 <input type="text" placeholder="Search KEMO's for anything" name="q" id="query-text" autocomplete="off" />
-                <button type="submit" value="Search">Search</button>
-                <div class="autocomplete-suggestions" style="position: absolute; width: 90%; max-height: 300px; z-index: 9999; display: none;"></div>
+                
+                <div class="autocomplete-suggestions" style="position: absolute; width: 90%; max-height: 300px; /* z-index: 9999; */ display: none;"></div>
+				
+				<button type="submit" value="Search">Search</button>
             </form>
         </div>
+		<br />
+		<a href="#" onclick="open_advanced_s()">Advanced Search</a>
     </div>
+	
+	<!--- Advanced search options -->
+				<div id="dialog-div" title="Advanced Search" style="display:none">
+				<form action="search.php" id="advanced-search">
+				<label for="phrase">Exact phrase</label>
+				<input type="text" name="phrase" class="text ui-widget-content ui-corner-all advanceditem" autocomplete="off" data-initial="1" data-valid="false" />
+				
+				</br>
+				
+				<label for="contains">Contains these words</label>
+				<input type="text" name="contains" class="text ui-widget-content ui-corner-all advanceditem" autocomplete="off" data-initial="1" data-valid="false" />
+				
+				</br>
+				
+				<label for="ncontains">Does not contain these words</label>
+				<input type="text" name="ncontains" class="text ui-widget-content ui-corner-all advanceditem" autocomplete="off" data-initial="1" data-valid="false" />
+				
+				</br>
+				
+				<label for="nearw">These words must be near each other</label>
+				<input type="text" name="nearw" class="text ui-widget-content ui-corner-all advanceditem" autocomplete="off" data-initial="1" data-valid="false" />
+				
+				</br>
+				
+				<label for="neard">with maximum distance of </label>
+				<input type="text" name="neard" class="text ui-widget-content ui-corner-all advanceditem" autocomplete="off" data-initial="1" data-valid="false" value="10" />
+				
+				<input type="hidden" name="advanced" value="true"/>
+				
+				</form>
+				</div>
+				<!--- End Advanced search options -->
+	
+	
+	
 </body>
 </html>
