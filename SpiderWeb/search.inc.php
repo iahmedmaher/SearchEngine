@@ -22,7 +22,7 @@ class searcher
 		$this->contains=$contains;
 		$this->doesntcontains=$doesntcontains;
 		$this->nearwords=$nearwords;
-		$this->neardist=$nearwords;
+		$this->neardist=$neardist;
 		$this->page=$page;
 		$this->is_advanced=true;
 	}
@@ -67,16 +67,16 @@ class searcher
 		{
 			$near_arr=explode(" ",$this->nearwords);
 			for($i=0;$i<sizeof($near_arr)-1;$i++)
-				$sql=$sql.$near_arr[i].' NEAR/'.$this->neardist.' ';
+				$sql=$sql.$near_arr[$i].' NEAR/'.$this->neardist.' ';
 			
-			$sql=$sql.end($people);
+			$sql=$sql.end($near_arr);
 		}
 		
 		$sql=$sql."' ORDER BY hex(matchinfo(PageContent,'x')) DESC LIMIT 10 OFFSET ". $this->page*10 .";";
 		
 		$this->Rcount=$this->conn->query($sql2.$sql)->fetchArray()['C'];
  
-		
+		//echo $sql1.$sql;
 		//$x=$conn->escapeString($x);
 		return $this->conn->query($sql1.$sql);	
 	}
