@@ -56,6 +56,8 @@ $s = null;
 
 if(isset($_GET["advanced"]))
 	$s = new AdvancedSearcher($_GET["phrase"],$_GET["contains"],$_GET["ncontains"],$_GET["nearw"],$_GET["neard"],$page);
+else
+	$s = new NormalSearcher($_GET["q"],$page);
 
 $result = $s->excute();
 

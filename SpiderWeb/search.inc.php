@@ -1,4 +1,6 @@
 <?php
+require_once("porter.inc.php");
+
 class Searcher
 {
 	protected $page;
@@ -47,6 +49,11 @@ class AdvancedSearcher extends Searcher
 	
 	public function excute()
 	{
+		/*
+		Example QUERY 
+		SELECT URL.URL,URL.Title,URL.TIMESTAMP,PageContent.Content FROM URL,PageContent WHERE URL.ID=PageContent.LID AND Content MATCH 'Karim NEAR/4 Engineering'
+		*/
+		
 		$sql1="SELECT URL.URL,URL.Title,URL.TIMESTAMP,PageContent.Content FROM URL,PageContent WHERE URL.ID=PageContent.LID AND Content MATCH '";
 		
 		$sql2="SELECT count(*) AS C FROM URL,PageContent WHERE URL.ID=PageContent.LID AND Content MATCH '";
@@ -81,10 +88,12 @@ class AdvancedSearcher extends Searcher
 			$sql=$sql.end($near_arr);
 		}
 		
-		$sql=$sql."' ORDER BY hex(matchinfo(PageContent,'x')) DESC LIMIT 10 OFFSET ". $this->page*10 .";";
+		$sql=$sql."'";
 		
 		$this->Rcount=$this->conn->query($sql2.$sql)->fetchArray()['C'];
- 
+		
+		$sql=$sql." ORDER BY hex(matchinfo(PageContent,'x')) DESC LIMIT 10 OFFSET ". $this->page*10 .";";
+		
 		//echo $sql1.$sql;
 		//$x=$conn->escapeString($x);
 		return $this->conn->query($sql1.$sql);	
@@ -104,28 +113,34 @@ class NormalSearcher extends Searcher
 	
 	public function excute()
 	{
-		$sql1="SELECT URL.URL,URL.Title,URL.TIMESTAMP,PageContent.Content FROM URL,PageContent WHERE URL.ID=PageContent.LID AND Content MATCH '";
 		
-		$sql2="SELECT count(*) AS C FROM URL,PageContent WHERE URL.ID=PageContent.LID AND Content MATCH '";
+		/*
+		Example QUERY (Optimized)
+		SELECT  URL.URL,URL.Title,URL.TIMESTAMP,PageContent.Content FROM URL,PageContent WHERE URL.ID=PageContent.LID AND LID IN (SELECT LID  FROM VECTOR  WHERE Keyword='visual' OR Keyword='studio' GROUP BY LID ORDER BY Sum(Rank) DESC LIMIT 10 OFFSET 0)
+		*/
+
+		$sql_count = "SELECT count(LID) AS C FROM VECTOR WHERE ";
 		
-		$sql="";
+		$sql="SELECT  URL.URL,URL.Title,URL.TIMESTAMP,PageContent.Content FROM URL,PageContent WHERE URL.ID=PageContent.LID AND LID IN (SELECT LID  FROM VECTOR  WHERE ";
 		
-		if($this->nearwords!="")
-		{
+		
+			$sqlcond="";
+		
 			$near_arr=explode(" ",$this->normalquery);
 			for($i=0;$i<sizeof($near_arr)-1;$i++)
-				$sql=$sql.$near_arr[$i].' NEAR/'.$this->neardist.' ';
+				$sqlcond=$sqlcond."Keyword='".PorterStemmer::Stem($near_arr[$i])."' OR ";
 			
-			$sql=$sql.end($near_arr);
-		}
+			$sqlcond=$sqlcond."Keyword='".end($near_arr)."'";
 		
-		$sql=$sql."' ORDER BY hex(matchinfo(PageContent,'x')) DESC LIMIT 10 OFFSET ". $this->page*10 .";";
 		
-		$this->Rcount=$this->conn->query($sql2.$sql)->fetchArray()['C'];
- 
-		//echo $sql1.$sql;
+		$sql=$sql.$sqlcond.' GROUP BY LID ORDER BY Sum(Rank) DESC LIMIT 10 OFFSET '. $this->page*10 .');';
+		
+		$sql_count=$sql_count.$sqlcond;
+
+		$this->Rcount=$this->conn->query($sql_count)->fetchArray()['C'];
 		//$x=$conn->escapeString($x);
-		return $this->conn->query($sql1.$sql);	
+		
+		return $this->conn->query($sql);	
 	}
 };
 ?>
