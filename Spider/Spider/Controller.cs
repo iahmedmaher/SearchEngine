@@ -13,6 +13,7 @@ namespace Spider
         DBController Database;
         GUI reporter;
         private ThreadManager TManager;
+        private Task ProgressBackupTask;
 
         static public bool OperationCancelled = false;
 
@@ -43,6 +44,7 @@ namespace Spider
         public Controller(GUI form)
         {
             TManager = new ThreadManager(form);
+            ProgressBackupTask = new Task(PeriodicBackup);
 
             this.reporter = form;
             this.MaxThreads = Environment.ProcessorCount;
@@ -77,13 +79,17 @@ namespace Spider
         {
             TManager.SetQueue(Scheduled_links);
             TManager.StartProcess();
-            new Task(PeriodicBackup).Start();
+            if (!(ProgressBackupTask.Status == TaskStatus.Running))
+            {
+                ProgressBackupTask.Start();
+            }
         }
 
         private void PeriodicBackup()
         {
             TimeSpan period = TimeSpan.FromMinutes(5);
             Thread.Sleep(period);
+
             while (!OperationCancelled)
             {
                 SaveWork();
@@ -141,7 +147,7 @@ namespace Spider
             new Task(() =>
                 {
                     TManager.WaitAll();
-                    RemoveQueueDuplicates();
+                    //RemoveQueueDuplicates();
                     SaveWork();
                     reporter.Invoke(reporter.CancellationFinished);
                 }).Start();

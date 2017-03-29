@@ -88,7 +88,7 @@ namespace Spider
         {
             var title = doc.DocumentNode.SelectSingleNode("//title");
             if (title != null)
-                return HtmlEntity.DeEntitize(title.InnerHtml);
+                return HttpUtility.HtmlDecode(title.InnerHtml);
             return null;
         }
 

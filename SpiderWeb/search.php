@@ -55,7 +55,7 @@ else
 $s = null;
 
 if(isset($_GET["advanced"]))
-	$s = new searcher($_GET["phrase"],$_GET["contains"],$_GET["ncontains"],$_GET["nearw"],$_GET["neard"],$page);
+	$s = new AdvancedSearcher($_GET["phrase"],$_GET["contains"],$_GET["ncontains"],$_GET["nearw"],$_GET["neard"],$page);
 
 $result = $s->excute();
 
