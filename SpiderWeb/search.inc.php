@@ -125,9 +125,9 @@ class NormalSearcher extends Searcher
 		SELECT URL.URL,URL.Title,URL.TIMESTAMP FROM URL,VECTOR WHERE URL.ID=VECTOR.LID AND (Keyword='cairo' OR Keyword='university') GROUP BY LID ORDER BY Sum(Rank) DESC LIMIT 10 OFFSET 0;
 		*/
 
-		$sql_count = "SELECT count(LID) AS C FROM VECTOR WHERE ";
+		$sql_count = "SELECT count(LID) AS C FROM VECTOR WHERE Keyword='' OR ";
 		
-		$sql="SELECT URL.ID,URL.URL,URL.Title,URL.TIMESTAMP FROM URL,VECTOR WHERE URL.ID=VECTOR.LID AND (";
+		$sql="SELECT URL.ID,URL.URL,URL.Title,URL.TIMESTAMP FROM URL,VECTOR WHERE URL.ID=VECTOR.LID AND (Keyword='' OR ";
 		
 		
 			$sqlcond="";

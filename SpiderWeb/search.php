@@ -74,7 +74,7 @@ while($row = $result->fetchArray()):
 ?>
 
 <div class="single-result">
-<a href="<?php echo $row["URL"] ?>"><h3><?php echo $row["Title"] ?></h3></a>
+<a href="<?php echo $row["URL"] ?>"><h3><?php echo ($row["Title"]=="" ? "(No Title)" : $row["Title"])  ?></h3></a>
 <cite><?php echo $row["URL"] ?></cite>
 <br />
 <span class="date"><?php echo $row["TIMESTAMP"] ?> - </span>
