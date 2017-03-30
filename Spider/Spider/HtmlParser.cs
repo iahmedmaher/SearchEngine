@@ -12,12 +12,14 @@ namespace Spider
     class HtmlParser
     {
         /*** Ranking:
-           * Title (12) -> H1 (10) -> H2 (8) -> H3 (6) -> H4 (5) -> H5 (5) -> H6 (5) -> b or strong (3) -> P or others (1)
+           * keywords(14) -> Title (12) -> description (11) -> H1 (10) -> H2 (8) -> H3 (6) -> H4 (5) -> H5 (5) -> H6 (5) -> b or strong (3) -> P or others (1)
            *
            ***/
 
         private static readonly Dictionary<string, int> Ranker = new Dictionary<string, int>(){
+           {"keywords",14 },
            {"title",12},
+           {"description",11 },
            {"h1",10},
            {"h2",8},
            {"h3",6},
@@ -92,10 +94,36 @@ namespace Spider
             return null;
         }
 
+        public string GetMetaKeywords()
+        {
+            var Keywords = doc.DocumentNode.SelectSingleNode("//meta[translate(@name, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz')='keywords']");
+            if (Keywords != null)
+                return HttpUtility.HtmlDecode(Keywords.Attributes["content"].Value);
+            return null;
+        }
+
+        public string GetMetaDescription()
+        {
+            var Description = doc.DocumentNode.SelectSingleNode("//meta[translate(@name, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz')='description']");
+            if (Description != null)
+                return HttpUtility.HtmlDecode(Description.Attributes["content"].Value);
+            return null;
+        }
 
         public string PlainText()
         {
-            return HttpUtility.HtmlDecode(string.Join(" ", doc.DocumentNode.Descendants()
+            string text = "";
+            string description = GetMetaDescription();
+            string keywords = GetMetaKeywords();
+            if (description != null)
+            {
+                text += description;
+            }
+            if (keywords != null)
+            {
+                text += keywords;
+            }
+            return text + HttpUtility.HtmlDecode(string.Join(" ", doc.DocumentNode.Descendants()
                         .Where(n => !n.HasChildNodes && !string.IsNullOrWhiteSpace(n.InnerText))
                         .Select(n => n.InnerText)));
         }
@@ -103,6 +131,8 @@ namespace Spider
         public Dictionary<string, int> KeywordsVectors()
         {
             Dictionary<string, int> dictionary = new Dictionary<string, int>();
+
+            GetMeta(dictionary);
 
             string word;
 
@@ -141,6 +171,48 @@ namespace Spider
             }
 
             return dictionary;
+        }
+
+        private void GetMeta(Dictionary<string, int> dictionary)
+        {
+            string description = GetMetaDescription();
+
+            if (description != null)
+            {
+                var arr = description.Split(' ');
+                foreach (var w in arr)
+                {
+                    if (!stopwords.Contains(w))
+                    {
+                        IStemmer p = new Porter2();
+                        string stemmed = p.stem(w);
+                        if (dictionary.ContainsKey(stemmed))
+                            dictionary[stemmed] += Ranker["keywords"];
+                        else
+                            dictionary.Add(stemmed, Ranker["keywords"]);
+                    }
+                }
+            }
+
+            string keywords = GetMetaKeywords();
+
+            if (keywords != null)
+            {
+                var arr = keywords.Split(',');
+                foreach (var w in arr)
+                {
+
+                    IStemmer p = new Porter2();
+                    string stemmed = p.stem(w);
+
+                    if (dictionary.ContainsKey(stemmed))
+                        dictionary[stemmed] += Ranker["description"];
+                    else
+                        dictionary.Add(stemmed, Ranker["description"]);
+
+                }
+
+            }
         }
     }
 }

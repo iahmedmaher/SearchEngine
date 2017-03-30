@@ -22,6 +22,12 @@ class Searcher
 		
 	}
 	
+	public function GetContentByID($LID)
+	{
+		$sql="SELECT Content FROM PageContent WHERE LID=".$LID;
+		return $this->conn->query($sql)->fetchArray()['Content'];
+	}
+	
 	public function GetCount()
 	{
 		return $this->Rcount;
@@ -39,12 +45,12 @@ class AdvancedSearcher extends Searcher
 	public function __construct($exactphrase,$contains,$doesntcontains,$nearwords,$neardist,$page=0)
 	{
 		$this->conn = new sqlite3("Index.db"); 
-		$this->exactphrase=$exactphrase;
-		$this->contains=$contains;
-		$this->doesntcontains=$doesntcontains;
-		$this->nearwords=$nearwords;
-		$this->neardist=$neardist;
-		$this->page=$page;
+		$this->exactphrase=$this->conn->escapeString($exactphrase);
+		$this->contains=$this->conn->escapeString($contains);
+		$this->doesntcontains=$this->conn->escapeString($doesntcontains);
+		$this->nearwords=$this->conn->escapeString($nearwords);
+		$this->neardist=$this->conn->escapeString($neardist);
+		$this->page=$this->conn->escapeString($page);
 	}
 	
 	public function excute()
@@ -54,9 +60,9 @@ class AdvancedSearcher extends Searcher
 		SELECT URL.URL,URL.Title,URL.TIMESTAMP,PageContent.Content FROM URL,PageContent WHERE URL.ID=PageContent.LID AND Content MATCH 'Karim NEAR/4 Engineering'
 		*/
 		
-		$sql1="SELECT URL.URL,URL.Title,URL.TIMESTAMP,PageContent.Content FROM URL,PageContent WHERE URL.ID=PageContent.LID AND Content MATCH '";
+		$sql1="SELECT URL.ID,URL.URL,URL.Title,URL.TIMESTAMP FROM URL,PageContent WHERE URL.ID=PageContent.LID AND Content MATCH '";
 		
-		$sql2="SELECT count(*) AS C FROM URL,PageContent WHERE URL.ID=PageContent.LID AND Content MATCH '";
+		$sql2="SELECT count(*) AS C FROM PageContent WHERE Content MATCH '";
 		
 		$sql="";
 		
@@ -106,8 +112,8 @@ class NormalSearcher extends Searcher
 	public function __construct($userquery,$page=0)
 	{
 		$this->conn = new sqlite3("Index.db"); 
-		$this->normalquery=$userquery;
-		$this->page=$page;
+		$this->normalquery=$this->conn->escapeString($userquery);
+		$this->page=$this->conn->escapeString($page);
 		$this->neardist=4;
 	}
 	
@@ -116,29 +122,31 @@ class NormalSearcher extends Searcher
 		
 		/*
 		Example QUERY (Optimized)
-		SELECT  URL.URL,URL.Title,URL.TIMESTAMP,PageContent.Content FROM URL,PageContent WHERE URL.ID=PageContent.LID AND LID IN (SELECT LID  FROM VECTOR  WHERE Keyword='visual' OR Keyword='studio' GROUP BY LID ORDER BY Sum(Rank) DESC LIMIT 10 OFFSET 0)
+		SELECT URL.URL,URL.Title,URL.TIMESTAMP FROM URL,VECTOR WHERE URL.ID=VECTOR.LID AND (Keyword='cairo' OR Keyword='university') GROUP BY LID ORDER BY Sum(Rank) DESC LIMIT 10 OFFSET 0;
 		*/
 
 		$sql_count = "SELECT count(LID) AS C FROM VECTOR WHERE ";
 		
-		$sql="SELECT  URL.URL,URL.Title,URL.TIMESTAMP,PageContent.Content FROM URL,PageContent WHERE URL.ID=PageContent.LID AND LID IN (SELECT LID  FROM VECTOR  WHERE ";
+		$sql="SELECT URL.ID,URL.URL,URL.Title,URL.TIMESTAMP FROM URL,VECTOR WHERE URL.ID=VECTOR.LID AND (";
 		
 		
 			$sqlcond="";
 		
 			$near_arr=explode(" ",$this->normalquery);
 			for($i=0;$i<sizeof($near_arr)-1;$i++)
-				$sqlcond=$sqlcond."Keyword='".PorterStemmer::Stem($near_arr[$i])."' OR ";
+				$sqlcond=$sqlcond."Keyword='".strtolower(PorterStemmer::Stem($near_arr[$i]))."' OR ";
 			
 			$sqlcond=$sqlcond."Keyword='".end($near_arr)."'";
 		
 		
-		$sql=$sql.$sqlcond.' GROUP BY LID ORDER BY Sum(Rank) DESC LIMIT 10 OFFSET '. $this->page*10 .');';
+		$sql=$sql.$sqlcond.') GROUP BY LID ORDER BY Sum(Rank) DESC LIMIT 10 OFFSET '. $this->page*10 .';';
 		
 		$sql_count=$sql_count.$sqlcond;
 
 		$this->Rcount=$this->conn->query($sql_count)->fetchArray()['C'];
 		//$x=$conn->escapeString($x);
+		
+		//echo $sql;
 		
 		return $this->conn->query($sql);	
 	}

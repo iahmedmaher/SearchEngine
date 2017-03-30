@@ -79,7 +79,7 @@ while($row = $result->fetchArray()):
 <br />
 <span class="date"><?php echo $row["TIMESTAMP"] ?> - </span>
 <span> 
-<?php echo substr($row["Content"],0,500) ?>
+<?php echo substr($s->GetContentByID($row["ID"]),0,500) ?>
 </span>
 </div>
 
