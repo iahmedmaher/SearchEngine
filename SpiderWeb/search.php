@@ -1,4 +1,4 @@
-<?php 
+﻿<?php 
 
 if(empty($_GET['q']) && !isset($_GET["advanced"])){
 	header("Location: index.html");
@@ -33,119 +33,120 @@ require_once("search.inc.php");
 </head>
 <body>
 <div id="res-searchbar-div">
-<div class="results-search-bar">
-<form class="search_bar large main" action="search.php" method="GET" id="search-form">
-  <input type="text" placeholder="Search KEMO's for anything" name="q" id="query-text" autocomplete="off" value="<?php echo isset($_GET["advanced"])?"Advanced Search":$user_query ?>"/>
-  <button type="submit" value="Search">Search</button>
-  <div class="autocomplete-suggestions" style="position: absolute; width: 90%; max-height: 300px; z-index: 9999; display: none;"></div>
-</form>
+	<div class="results-search-bar">
+		<form class="search_bar large main" action="search.php" method="GET" id="search-form">
+		  <input type="text" placeholder="Search KEMO's for anything" name="q" id="query-text" autocomplete="off" value="<?php echo isset($_GET["advanced"])?"Advanced Search":$user_query ?>"/>
+		  <button type="submit" value="Search">Search</button>
+		  <div class="autocomplete-suggestions" style="position: absolute; width: 90%; max-height: 300px; z-index: 9999; display: none;"></div>
+		</form>
+	</div>
 </div>
-</div>
+
+
+    <?php 
+
+    if(isset($_GET["page"]))
+	    $page=$_GET["page"];
+    else
+	    $page=0;
+
+
+    $s = null;
+
+    if(isset($_GET["advanced"])){
+	    $s = new AdvancedSearcher($_GET["phrase"],$_GET["contains"],$_GET["ncontains"],$_GET["nearw"],$_GET["neard"],$page);
+    }
+    else{
+	    $s = new NormalSearcher($_GET["q"],$page);
+    }
+
+    $result = $s->excute();
+
+    $time_post = microtime(true);
+
+    ?>
 
 <div id="results-area">
+    <div id="meta">
+        <i>About <?php echo $s->GetCount() ?> results in <?php echo round($time_post-$time_pre,5) ?> seconds.</i>
+    </div>
 
-<?php 
+    <?php
+    while($row = $result->fetchArray()):
+    ?>
 
-if(isset($_GET["page"]))
-	$page=$_GET["page"];
-else
-	$page=0;
+    <div class="single-result">
+        <a href="<?php echo $row["URL"] ?>">
+            <h3>
+                <?php
+                if($row["Title"]==""):
+	                echo "(No Title)";
+                elseif(strlen($row["Title"]) > 60):
+	                echo substr($row["Title"],0,55)." ...";
+                else:
+	                echo $row["Title"];
+                endif;
+                ?>
+            </h3>
+        </a>
+        <cite>
+            <?php
+            if(strlen($row["URL"]) > 100):
+	            echo substr($row["URL"],0,100)." ...";
+            else:
+	            echo $row["URL"];
+            endif;
+            ?>
+        </cite>
+        <br />
+            <span class="date"><?php echo $row["TIMESTAMP"] ?> - </span>
+        <span> 
+            <?php echo substr($s->GetContentByID($row["ID"]),0,500)." ..." ?>
+        </span>
+    </div>
 
+    <?php
+    endwhile;
+    ?>
 
-$s = null;
+    <div class="pagination">
 
-if(isset($_GET["advanced"])){
-	$s = new AdvancedSearcher($_GET["phrase"],$_GET["contains"],$_GET["ncontains"],$_GET["nearw"],$_GET["neard"],$page);
-}
-else{
-	$s = new NormalSearcher($_GET["q"],$page);
-}
+        <?php
+        $url = $_SERVER["REQUEST_URI"];
+        if(!isset($_GET["page"]))
+	        $url=$url."&page=0";
 
-$result = $s->excute();
+        if($page!=0):
+        $url=preg_replace("/page=\d{1,4}/i","page=".($page-1),$url);
+        ?>
 
-$time_post = microtime(true);
+        <a href="<?php echo $url ?>">&laquo;</a>
 
-?>
+        <?php endif; ?>  
+ 
+        <?php
+        $page_n = 10*floor($page/10);
 
-<div id="meta">
-<i>About <?php echo $s->GetCount() ?> results in <?php echo round($time_post-$time_pre,5) ?> seconds.</i>
-</div>
+        for($i=0;$i<10;$i++):
+        $url=preg_replace("/page=\d{1,4}/i","page=".($page_n),$url);
 
-<?php
-while($row = $result->fetchArray()):
-?>
-
-<div class="single-result">
-<a href="<?php echo $row["URL"] ?>"><h3>
-<?php
-if($row["Title"]==""):
-	echo "(No Title)";
-elseif(strlen($row["Title"]) > 60):
-	echo substr($row["Title"],0,55)." ...";
-else:
-	echo $row["Title"];
-endif;
-?>
-</h3></a>
-<cite>
-<?php
-if(strlen($row["URL"]) > 100):
-	echo substr($row["URL"],0,100)." ...";
-else:
-	echo $row["URL"];
-endif;
-?>
-</cite>
-<br />
-<span class="date"><?php echo $row["TIMESTAMP"] ?> - </span>
-<span> 
-<?php echo substr($s->GetContentByID($row["ID"]),0,500)." ..." ?>
-</span>
-</div>
-
-<?php
-endwhile;
-?>
-
-<table style="border-collapse:collapse;text-align:left;margin:30px auto 30px;width=100%">
-<tr>
-<td style="width:50%;">
-
-<?php
-if($page!=0):
-$url = $_SERVER["REQUEST_URI"];
-
-$url=preg_replace("/page=\d{1,4}/i","page=".($page-1),$url);
-?>
-
-
-
-<a href="<?php echo $url ?>"><h3>&lt;Previous</h3></a>
-
-<?php
-endif;
-?>
-
-</td>
-<td style="width:50%">
-<?php
-if($page<floor($s->GetCount()/10)):
-$url = $_SERVER["REQUEST_URI"];
-
-$url=preg_replace("/page=\d{1,4}/i","page=".($page+1),$url);
-if(!isset($_GET["page"]))
-	$url=$url."&page=1";
-?>
-
-<a href="<?php echo $url ?>"><h3>Next&gt;</h3></a>
-
-<?php
-endif;
-?>
-
-</td>
-</tr>
-</table>
+        ?> 
+  
+        <a href="<?php echo $url ?>" <?php echo ($page_n==$page ? 'class="active"':'')?> ><?php echo $page_n ?></a>
+  
+        <?php 
+        $page_n++;
+        endfor; 
+        ?>
+  
+        <?php
+        if($page<floor($s->GetCount()/10)):
+        $url=preg_replace("/page=\d{1,4}/i","page=".($page+1),$url);
+        ?>
+        <a href="<?php echo $url ?>">&raquo;</a>
+  
+        <?php endif; ?> 
+    </div>
 
 </div>
 
