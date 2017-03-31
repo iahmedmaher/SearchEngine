@@ -30,8 +30,22 @@ require_once("search.inc.php");
 <script src="https://cdn.jsdelivr.net/jquery.ui/1.11.4/jquery-ui.min.js"></script>
 <script src="js/main.js"></script>
 
+<script type="text/javascript">
+$(document).ready(function(){
+	$(".pagination a").click(function(){
+		$("#loading").show();
+	});
+	$("form").submit(function(){
+		$("#loading").show();
+	});
+});
+</script>
+
 </head>
 <body>
+
+<div id="loading" style="display:none"></div>
+
 <div id="res-searchbar-div">
 	<div class="results-search-bar">
 		<form class="search_bar large main" action="search.php" method="GET" id="search-form">
@@ -118,9 +132,13 @@ require_once("search.inc.php");
 
         <?php
         $url = $_SERVER["REQUEST_URI"];
-        if(!isset($_GET["page"]))
+        
+		if(!isset($_GET["page"]))
 	        $url=$url."&page=0";
 
+		$page_n = 10*floor($page/10);
+		$upperlimit = floor($s->GetCount()/10);
+		
         if($page!=0):
         $url=preg_replace("/page=\d{1,4}/i","page=".($page-1),$url);
         ?>
@@ -130,22 +148,21 @@ require_once("search.inc.php");
         <?php endif; ?>  
  
         <?php
-        $page_n = 10*floor($page/10);
-
-        for($i=0;$i<10;$i++):
-        $url=preg_replace("/page=\d{1,4}/i","page=".($page_n),$url);
+        
+		for($i=0;$i<10 and $page_n<=$upperlimit;$i++):
+			$url=preg_replace("/page=\d{1,4}/i","page=".($page_n),$url);
 
         ?> 
   
         <a href="<?php echo $url ?>" <?php echo ($page_n==$page ? 'class="active"':'')?>><?php echo $page_n+1 ?></a>
   
         <?php 
-        $page_n++;
+			$page_n++;
         endfor; 
         ?>
   
         <?php
-        if($page<floor($s->GetCount()/10)):
+        if($page<$upperlimit):
         $url=preg_replace("/page=\d{1,4}/i","page=".($page+1),$url);
         ?>
         <a href="<?php echo $url ?>">&raquo;</a>

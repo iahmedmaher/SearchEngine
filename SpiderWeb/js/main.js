@@ -4,6 +4,9 @@ var currentlistcount = 0;
 
 $(document).ready(function() {
 	init_dialog();
+	$("form").submit(function(){
+		$("#loading").show();
+	});
 	$('#query-text').on('input propertychange paste', function() {
 		var txt = $("#query-text").val();
 		if(txt!="")
