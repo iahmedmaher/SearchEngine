@@ -76,13 +76,14 @@ require_once("search.inc.php");
     ?>
 
     <div class="single-result">
-        <a href="<?php echo $row["URL"] ?>">
+        <a href="<?php echo $row["URL"] ?>" title="<?php echo ($row["Title"]==""?"(No Title)":$row["Title"]) ?>">
             <h3>
                 <?php
                 if($row["Title"]==""):
 	                echo "(No Title)";
                 elseif(strlen($row["Title"]) > 60):
-	                echo substr($row["Title"],0,55)." ...";
+	                $str = substr($row["Title"],0,55);
+					echo substr($str,0,strrpos($str,' '))." ...";
                 else:
 	                echo $row["Title"];
                 endif;
@@ -101,7 +102,11 @@ require_once("search.inc.php");
         <br />
             <span class="date"><?php echo $row["TIMESTAMP"] ?> - </span>
         <span> 
-            <?php echo substr($s->GetContentByID($row["ID"]),0,500)." ..." ?>
+            <?php 
+			$str = $s->GetContentByID($row["ID"]);
+			$str = substr($str,0,500); 
+			echo substr($str,0,strrpos($str,' '))." ...";
+			?>
         </span>
     </div>
 
@@ -132,7 +137,7 @@ require_once("search.inc.php");
 
         ?> 
   
-        <a href="<?php echo $url ?>" <?php echo ($page_n==$page ? 'class="active"':'')?> ><?php echo $page_n ?></a>
+        <a href="<?php echo $url ?>" <?php echo ($page_n==$page ? 'class="active"':'')?>><?php echo $page_n+1 ?></a>
   
         <?php 
         $page_n++;
