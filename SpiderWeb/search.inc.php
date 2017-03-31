@@ -5,21 +5,11 @@ class Searcher
 {
 	protected $page;
 	protected $Rcount;
-	
-	protected $exactphrase;
-	protected $contains;
-	protected $doesntcontains;
-	protected $nearwords;
-	protected $neardist;
-	
-	protected $normalquery;
-	
 	protected $conn;
-	
-	
-	public function excute()
+
+	public function __construct()
 	{
-		
+		$this->conn = new sqlite3("Index.db"); 
 	}
 	
 	public function GetContentByID($LID)
@@ -38,13 +28,19 @@ class Searcher
 		$this->conn->close();	
 	}
 	
-};
+}
 
 class AdvancedSearcher extends Searcher
 {
+	protected $exactphrase;
+	protected $contains;
+	protected $doesntcontains;
+	protected $nearwords;
+	protected $neardist;
+	
 	public function __construct($exactphrase,$contains,$doesntcontains,$nearwords,$neardist,$page=0)
 	{
-		$this->conn = new sqlite3("Index.db"); 
+		parent::__construct();
 		$this->exactphrase=$this->conn->escapeString($exactphrase);
 		$this->contains=$this->conn->escapeString($contains);
 		$this->doesntcontains=$this->conn->escapeString($doesntcontains);
@@ -104,14 +100,16 @@ class AdvancedSearcher extends Searcher
 		//$x=$conn->escapeString($x);
 		return $this->conn->query($sql1.$sql);	
 	}
-};
+}
 
 
 class NormalSearcher extends Searcher
 {
+	protected $normalquery;
+	
 	public function __construct($userquery,$page=0)
 	{
-		$this->conn = new sqlite3("Index.db"); 
+		parent::__construct();
 		$this->normalquery=$this->conn->escapeString($userquery);
 		$this->page=$this->conn->escapeString($page);
 		$this->neardist=4;
@@ -122,7 +120,7 @@ class NormalSearcher extends Searcher
 		
 		/*
 		Example QUERY (Optimized)
-		SELECT URL.URL,URL.Title,URL.TIMESTAMP FROM URL,VECTOR WHERE URL.ID=VECTOR.LID AND (Keyword='cairo' OR Keyword='university') GROUP BY LID ORDER BY Sum(Rank) DESC LIMIT 10 OFFSET 0;
+		SELECT URL.URL,URL.Title,URL.TIMESTAMP FROM URL,VECTOR WHERE URL.ID=VECTOR.LID AND (Keyword='' OR Keyword='cairo' OR Keyword='university') GROUP BY LID ORDER BY Sum(Rank) DESC LIMIT 10 OFFSET 0;
 		*/
 
 		$sql_count = "SELECT count(LID) AS C FROM VECTOR WHERE Keyword='' OR ";
@@ -134,21 +132,20 @@ class NormalSearcher extends Searcher
 		
 			$near_arr=explode(" ",$this->normalquery);
 			for($i=0;$i<sizeof($near_arr)-1;$i++)
-				$sqlcond=$sqlcond."Keyword='".strtolower(PorterStemmer::Stem($near_arr[$i]))."' OR ";
+				$sqlcond=$sqlcond."Keyword='".PorterStemmer::Stem(strtolower($near_arr[$i]))."' OR ";
 			
-			$sqlcond=$sqlcond."Keyword='".end($near_arr)."'";
+			$sqlcond=$sqlcond."Keyword='".PorterStemmer::Stem(strtolower(end($near_arr)))."'";
 		
 		
-		$sql=$sql.$sqlcond.') GROUP BY LID ORDER BY Sum(Rank) DESC LIMIT 10 OFFSET '. $this->page*10 .';';
+		$sql=$sql.$sqlcond.') GROUP BY LID ORDER BY sum(Rank) DESC LIMIT 10 OFFSET '. $this->page*10 .';';
 		
 		$sql_count=$sql_count.$sqlcond;
 
 		$this->Rcount=$this->conn->query($sql_count)->fetchArray()['C'];
 		//$x=$conn->escapeString($x);
 		
-		//echo $sql;
 		
 		return $this->conn->query($sql);	
 	}
-};
+}
 ?>
