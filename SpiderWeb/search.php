@@ -10,9 +10,31 @@ if(!isset($_GET["advanced"]))
 	$user_query=$_GET["q"];
 }
 
-$time_pre = microtime(true);
+if(isset($_GET["page"]))
+	$page=$_GET["page"];
+else
+	$page=0;
+
 require_once("search.inc.php");
-?>
+require_once("kemo_define.php");
+
+$time_pre = microtime(true);
+
+$s = null;
+
+if(isset($_GET["advanced"])){
+	$s = new AdvancedSearcher($_GET["phrase"],$_GET["contains"],$_GET["ncontains"],$_GET["nearw"],$_GET["neard"],$page);
+}
+else{
+	$s = new NormalSearcher($_GET["q"],$page);
+}
+
+$result = $s->excute();
+
+$time_post = microtime(true);
+
+?>    
+
 <!doctype html>
 <html>
 <head>
@@ -55,37 +77,35 @@ $(document).ready(function(){
 		</form>
 	</div>
 </div>
-
-
-    <?php 
-
-    if(isset($_GET["page"]))
-	    $page=$_GET["page"];
-    else
-	    $page=0;
-
-
-    $s = null;
-
-    if(isset($_GET["advanced"])){
-	    $s = new AdvancedSearcher($_GET["phrase"],$_GET["contains"],$_GET["ncontains"],$_GET["nearw"],$_GET["neard"],$page);
-    }
-    else{
-	    $s = new NormalSearcher($_GET["q"],$page);
-    }
-
-    $result = $s->excute();
-
-    $time_post = microtime(true);
-
-    ?>
-
 <div id="results-area">
     <div id="meta">
         <i>About <?php echo $s->GetCount() ?> results in <?php echo round($time_post-$time_pre,5) ?> seconds.</i>
     </div>
 
-    <?php
+	<?php
+	if($page==0 && isset($user_query)):
+		$defineterm = new definer($user_query);
+		$defineterm->excute();
+	
+		if($defineterm->is_ambiguous()):
+	?>
+		
+		<div class="single-result" id="results-warn">
+		<h5>Hint: Your search seems to be too general or/and ambiguous; try more specific search to find more relevant results</h5>
+		</div>
+	
+	<?php
+		endif;
+		if($defineterm->has_definition()):
+    ?>
+		<div class="single-result" id="definition-card">
+		<h2><?php echo $defineterm->getTitle() ?></h2>
+		<p><?php echo $defineterm->getSummary() ?></p>
+		</div>
+		
+	<?php
+		endif;
+	endif;
     while($row = $result->fetchArray()):
     ?>
 
