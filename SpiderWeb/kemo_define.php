@@ -40,7 +40,7 @@ class definer{
 		
 		$q=$this->searchtext;
 		
-		$api_link="https://en.wikipedia.org/w/api.php?action=query&prop=extracts&exintro=&explaintext=&titles=".urlencode($q)."&redirects=1&format=json";
+		$api_link="https://en.wikipedia.org/w/api.php?action=query&prop=extracts&exsentences=4&exintro=&explaintext=&titles=".urlencode($q)."&redirects=1&format=json";
 
 		$s = $this->getpage($api_link);
 		
@@ -60,7 +60,7 @@ class definer{
 		$this->result_title=current($s)["title"];
 		$this->result=preg_replace("/\(.+?\)( |,)/","",current($s)["extract"]); //extract usefull info
 		
-		if(stripos($this->result, 'may refer to') !== false)
+		if(stripos($this->result, 'may refer to') !== false || stripos($this->result_title, '(disambiguation)') !== false)
 		{
 			$this->found=false;
 			$this->ambiguous=true;

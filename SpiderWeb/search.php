@@ -1,5 +1,9 @@
 ﻿<?php 
 
+require_once("search.inc.php");
+require_once("kemo_define.php");
+require_once("stopwords.php");
+
 if(empty($_GET['q']) && !isset($_GET["advanced"])){
 	header("Location: index.html");
 	die();
@@ -7,16 +11,13 @@ if(empty($_GET['q']) && !isset($_GET["advanced"])){
 
 if(!isset($_GET["advanced"]))
 {
-	$user_query=$_GET["q"];
+	$user_query=removeCommonWords($_GET["q"]);
 }
 
 if(isset($_GET["page"]))
 	$page=$_GET["page"];
 else
 	$page=0;
-
-require_once("search.inc.php");
-require_once("kemo_define.php");
 
 $time_pre = microtime(true);
 
@@ -26,7 +27,7 @@ if(isset($_GET["advanced"])){
 	$s = new AdvancedSearcher($_GET["phrase"],$_GET["contains"],$_GET["ncontains"],$_GET["nearw"],$_GET["neard"],$page);
 }
 else{
-	$s = new NormalSearcher($_GET["q"],$page);
+	$s = new NormalSearcher($user_query,$page);
 }
 
 $result = $s->excute();
@@ -79,7 +80,7 @@ $(document).ready(function(){
 </div>
 <div id="results-area">
     <div id="meta">
-        <i>About <?php echo $s->GetCount() ?> results in <?php echo round($time_post-$time_pre,5) ?> seconds.</i>
+        <i><?php echo ($page!=0 ? "Page ".($page+1)." of a":"A")?>bout <?php echo $s->GetCount() ?> results in <?php echo round($time_post-$time_pre,3) ?> seconds.</i>
     </div>
 
 	<?php
@@ -124,7 +125,7 @@ $(document).ready(function(){
                 ?>
             </h3>
         </a>
-        <cite>
+        <cite class="ellipses">
             <?php
             if(strlen($row["URL"]) > 100):
 	            echo substr($row["URL"],0,100)." ...";
