@@ -119,13 +119,13 @@ class NormalSearcher extends Searcher
 	{
 		
 		/*
-		Example QUERY (Optimized: LIMIT in the subquery before JOIN)
-		SELECT URL.ID,URL.URL,URL.Title,URL.TIMESTAMP FROM URL,(SELECT LID,Sum(Rank) AS R FROM VECTOR WHERE Keyword='' OR Keyword='wikipedia' GROUP BY LID ORDER BY Sum(Rank) DESC LIMIT 10 OFFSET 0) AS SUB WHERE  URL.ID=SUB.LID ORDER BY R DESC;
+		Example QUERY (Optimized)
+		SELECT URL.URL,URL.Title,URL.TIMESTAMP FROM URL,VECTOR WHERE URL.ID=VECTOR.LID AND (Keyword='' OR Keyword='cairo' OR Keyword='university') GROUP BY LID ORDER BY Sum(Rank) DESC LIMIT 10 OFFSET 0;
 		*/
 
 		$sql_count = "SELECT count(LID) AS C FROM VECTOR WHERE Keyword='' OR ";
 		
-		$sql="SELECT URL.ID,URL.URL,URL.Title,URL.TIMESTAMP FROM URL,(SELECT LID,Sum(Rank) AS R FROM VECTOR WHERE Keyword='' OR ";
+		$sql="SELECT URL.ID,URL.URL,URL.Title,URL.TIMESTAMP FROM URL,VECTOR WHERE URL.ID=VECTOR.LID AND (Keyword='' OR ";
 		
 		
 			$sqlcond="";
@@ -137,7 +137,7 @@ class NormalSearcher extends Searcher
 			$sqlcond=$sqlcond."Keyword='".PorterStemmer::Stem(strtolower(end($near_arr)))."'";
 		
 		
-		$sql=$sql.$sqlcond.'GROUP BY LID ORDER BY Sum(Rank) DESC LIMIT 10 OFFSET '. $this->page*10 .') AS SUB WHERE  URL.ID=SUB.LID ORDER BY R DESC;';
+		$sql=$sql.$sqlcond.') GROUP BY LID ORDER BY sum(Rank) DESC LIMIT 10 OFFSET '. $this->page*10 .';';
 		
 		$sql_count=$sql_count.$sqlcond;
 

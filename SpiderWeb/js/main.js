@@ -6,6 +6,7 @@ $(document).ready(function() {
 	init_dialog();
 	$("form").submit(function(){
 		$("#loading").show();
+		$("body").css({"overflow":"hidden"});
 	});
 	$('#query-text').on('input propertychange paste', function() {
 		var txt = $("#query-text").val();

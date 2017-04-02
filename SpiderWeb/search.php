@@ -11,7 +11,7 @@ if(empty($_GET['q']) && !isset($_GET["advanced"])){
 
 if(!isset($_GET["advanced"]))
 {
-	$user_query=removeCommonWords($_GET["q"]);
+	$user_query=trim(removeCommonWords($_GET["q"]));
 }
 
 if(isset($_GET["page"]))
@@ -57,9 +57,11 @@ $time_post = microtime(true);
 $(document).ready(function(){
 	$(".pagination a").click(function(){
 		$("#loading").show();
+		$("body").css({"overflow":"hidden"});
 	});
 	$("form").submit(function(){
 		$("#loading").show();
+		$("body").css({"overflow":"hidden"});
 	});
 });
 </script>
@@ -72,7 +74,7 @@ $(document).ready(function(){
 <div id="res-searchbar-div">
 	<div class="results-search-bar">
 		<form class="search_bar large main" action="search.php" method="GET" id="search-form">
-		  <input type="text" placeholder="Search KEMO's for anything" name="q" id="query-text" autocomplete="off" value="<?php echo isset($_GET["advanced"])?"Advanced Search":$user_query ?>"/>
+		  <input type="text" placeholder="Search KEMO's for anything" name="q" id="query-text" autocomplete="off" value="<?php echo isset($_GET["advanced"])?"Advanced Search":$_GET["q"] ?>"/>
 		  <button type="submit" value="Search">Search</button>
 		  <div class="autocomplete-suggestions" style="position: absolute; width: 90%; max-height: 300px; z-index: 9999; display: none;"></div>
 		</form>
