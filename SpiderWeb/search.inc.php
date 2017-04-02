@@ -111,39 +111,38 @@ class NormalSearcher extends Searcher
 	{
 		parent::__construct();
 		$this->normalquery=$this->conn->escapeString($userquery);
+		$this->normalquery=preg_replace("/ +?/"," ",$this->normalquery);
 		$this->page=$this->conn->escapeString($page);
 		$this->neardist=4;
 	}
 	
 	public function excute()
 	{
-		
 		/*
 		Example QUERY (Optimized: LIMIT in the subquery before JOIN)
-		SELECT URL.ID,URL.URL,URL.Title,URL.TIMESTAMP FROM URL,(SELECT LID,Sum(Rank) AS R FROM VECTOR WHERE Keyword='' OR Keyword='wikipedia' GROUP BY LID ORDER BY Sum(Rank) DESC LIMIT 10 OFFSET 0) AS SUB WHERE  URL.ID=SUB.LID ORDER BY R DESC;
+		SELECT URL.ID,URL.URL,URL.Title,URL.TIMESTAMP FROM URL,(SELECT LID,Sum(Rank) AS R FROM VECTOR WHERE Keyword MATCH 'Visual OR studio' GROUP BY LID ORDER BY Sum(Rank) DESC LIMIT 10 OFFSET 0) AS SUB WHERE  URL.ID=SUB.LID ORDER BY R DESC;
 		*/
 
-		$sql_count = "SELECT count(LID) AS C FROM VECTOR WHERE Keyword='' OR ";
+		$sql_count = "SELECT count(DISTINCT LID) AS C FROM VECTOR WHERE Keyword MATCH '";
 		
-		$sql="SELECT URL.ID,URL.URL,URL.Title,URL.TIMESTAMP FROM URL,(SELECT LID,Sum(Rank) AS R FROM VECTOR WHERE Keyword='' OR ";
+		$sql="SELECT URL.ID,URL.URL,URL.Title,URL.TIMESTAMP FROM URL,(SELECT LID,Sum(Rank) AS R FROM VECTOR WHERE Keyword MATCH '";
 		
 		
 			$sqlcond="";
 		
 			$near_arr=explode(" ",$this->normalquery);
 			for($i=0;$i<sizeof($near_arr)-1;$i++)
-				$sqlcond=$sqlcond."Keyword='".PorterStemmer::Stem(strtolower($near_arr[$i]))."' OR ";
+				if(strlen(trim($near_arr[$i]))>0)
+					$sqlcond=$sqlcond."".PorterStemmer::Stem(strtolower($near_arr[$i]))." OR ";
 			
-			$sqlcond=$sqlcond."Keyword='".PorterStemmer::Stem(strtolower(end($near_arr)))."'";
+			$sqlcond=$sqlcond.PorterStemmer::Stem(strtolower(end($near_arr)))."'";
 		
 		
-		$sql=$sql.$sqlcond.'GROUP BY LID ORDER BY Sum(Rank) DESC LIMIT 10 OFFSET '. $this->page*10 .') AS SUB WHERE  URL.ID=SUB.LID ORDER BY R DESC;';
-		
+		$sql=$sql.$sqlcond.' GROUP BY LID ORDER BY Sum(Rank) DESC LIMIT 10 OFFSET '. $this->page*10 .') AS SUB WHERE  URL.ID=SUB.LID ORDER BY R DESC;';
+
 		$sql_count=$sql_count.$sqlcond;
 
 		$this->Rcount=$this->conn->query($sql_count)->fetchArray()['C'];
-		//$x=$conn->escapeString($x);
-		
 		
 		return $this->conn->query($sql);	
 	}

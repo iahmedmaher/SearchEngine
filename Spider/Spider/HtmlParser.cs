@@ -97,17 +97,31 @@ namespace Spider
         public string GetMetaKeywords()
         {
             var Keywords = doc.DocumentNode.SelectSingleNode("//meta[translate(@name, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz')='keywords']");
-            if (Keywords != null)
-                return HttpUtility.HtmlDecode(Keywords.Attributes["content"].Value);
-            return null;
+            try
+            {
+                if (Keywords != null)
+                    return HttpUtility.HtmlDecode(Keywords.Attributes["content"].Value);
+                return null;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
         }
 
         public string GetMetaDescription()
         {
             var Description = doc.DocumentNode.SelectSingleNode("//meta[translate(@name, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz')='description']");
-            if (Description != null)
-                return HttpUtility.HtmlDecode(Description.Attributes["content"].Value);
-            return null;
+            try
+            {
+                if (Description != null)
+                    return HttpUtility.HtmlDecode(Description.Attributes["content"].Value);
+                return null;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
         }
 
         public string PlainText()
@@ -182,7 +196,7 @@ namespace Spider
                 var arr = description.Split(' ');
                 foreach (var w in arr)
                 {
-                    if (!stopwords.Contains(w))
+                    if (!stopwords.Contains(w) && w!=string.Empty)
                     {
                         IStemmer p = new Porter2();
                         string stemmed = p.stem(w);
@@ -204,12 +218,13 @@ namespace Spider
 
                     IStemmer p = new Porter2();
                     string stemmed = p.stem(w);
-
-                    if (dictionary.ContainsKey(stemmed))
-                        dictionary[stemmed] += Ranker["description"];
-                    else
-                        dictionary.Add(stemmed, Ranker["description"]);
-
+                    if (w != string.Empty)
+                    {
+                        if (dictionary.ContainsKey(stemmed))
+                            dictionary[stemmed] += Ranker["description"];
+                        else
+                            dictionary.Add(stemmed, Ranker["description"]);
+                    }
                 }
 
             }
