@@ -160,7 +160,7 @@ $(document).ready(function(){
 	        $url=$url."&page=0";
 
 		$page_n = 10*floor($page/10);
-		$upperlimit = floor($s->GetCount()/10);
+		$upperlimit = floor(($s->GetCount()-1)/10);
 		
         if($page!=0):
         $url=preg_replace("/page=\d{1,4}/i","page=".($page-1),$url);

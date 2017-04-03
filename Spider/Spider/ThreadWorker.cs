@@ -8,15 +8,13 @@ namespace Spider
 {
     class ThreadWorker
     {
-        ConcurrentQueue<string> Scheduled_links;
         DBController Database;
         GUI reporter;
 
-        public ThreadWorker(ConcurrentQueue<string> SL, GUI RP)
+        public ThreadWorker(GUI RP)
         {
-            this.Scheduled_links = SL;
-            this.Database = DBController.GetInstance();
-            this.reporter = RP;
+            Database = DBController.GetInstance();
+            reporter = RP;
         }
         
         public void ThreadProc(object obj)
@@ -24,7 +22,11 @@ namespace Spider
             if (Controller.OperationCancelled)
                 return;
 
-            string link = (string)obj;
+
+            string link = (obj as ThreadParameter).link;
+            ConcurrentQueue<string> Scheduled_links = (obj as ThreadParameter).queue;
+
+
             bool Revisted = false;
 
             if (Database.LinkExists(link))

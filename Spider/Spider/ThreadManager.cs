@@ -6,22 +6,24 @@ namespace Spider
 {
     class ThreadManager
     {
-        ConcurrentQueue<string> Scheduled_links;
+        ConcurrentQueue<string>[] Scheduled_links;
         DBController Database;
         object ClosingLock;
         GUI reporter;
         public int MaxThreads { set; get; }
         private int ThreadCount;
         private bool busy;
+        private int CurrentQueue;
         ThreadWorker worker;
 
         public ThreadManager(GUI RP)
         {
-            this.Database = DBController.GetInstance();
-            this.ClosingLock = new object();
-            this.reporter = RP;
-            this.ThreadCount = 0;
-            this.busy = false;
+            Database = DBController.GetInstance();
+            ClosingLock = new object();
+            reporter = RP;
+            ThreadCount = 0;
+            busy = false;
+            CurrentQueue = 0;
         }
 
         private void RunThread(object obj)
@@ -34,15 +36,25 @@ namespace Spider
                 lock (ClosingLock) { Monitor.Pulse(ClosingLock); }
         }
 
-        public void SetQueue(ConcurrentQueue<string> SL)
+        public void SetQueue(ConcurrentQueue<string>[] SL)
         {
-            this.Scheduled_links = SL;
-            this.worker = new ThreadWorker(SL, this.reporter);
+            Scheduled_links = SL;
+            worker = new ThreadWorker(reporter);
         }
 
         public void StartProcess()
         {
             new Task(Manage).Start();
+        }
+
+        private bool QueueNotEmpty()
+        {
+            foreach (var q in Scheduled_links)
+            {
+                if (q.Count > 0)
+                    return true;
+            }
+            return false;
         }
 
         private void Manage()
@@ -52,9 +64,9 @@ namespace Spider
 
             do
             {
-                if (ThreadCount < MaxThreads && Scheduled_links.TryDequeue(out url))
+                if (ThreadCount < MaxThreads && Scheduled_links[CurrentQueue].TryDequeue(out url))
                 {
-                    ThreadPool.QueueUserWorkItem(new WaitCallback(RunThread), url);
+                    ThreadPool.QueueUserWorkItem(new WaitCallback(RunThread), new ThreadParameter(Scheduled_links[CurrentQueue], url));
                 }
 
                 if (Controller.OperationCancelled)
@@ -62,10 +74,10 @@ namespace Spider
                     busy = false;
                     return;
                 }
-
+                CurrentQueue = (CurrentQueue + 1) % Scheduled_links.Length;
                 Thread.Sleep(500);
 
-            } while (Scheduled_links.Count > 0 || ThreadCount > 0);
+            } while (QueueNotEmpty() || ThreadCount > 0);
 
             reporter.Invoke(reporter.ReportFinished);
 

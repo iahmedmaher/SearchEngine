@@ -2,19 +2,22 @@
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Threading;
+using System.Linq;
 
 namespace Spider
 {
     class Controller
     {
-        ConcurrentQueue<string> Scheduled_links;
+        ConcurrentQueue<string>[] Scheduled_links;
         DBController Database;
         GUI reporter;
         private ThreadManager TManager;
         private Task ProgressBackupTask;
 
+        private LinkedList<ConcurrentQueue<string>> temp_list;
         static public bool OperationCancelled = false;
 
         public int MaxThreads
@@ -29,7 +32,15 @@ namespace Spider
         {
             get
             {
-                return Scheduled_links.Count;
+                if (Scheduled_links == null)
+                    return temp_list.Count;
+
+                int c = 0;
+                foreach (var q in Scheduled_links)
+                {
+                    c += q.Count;
+                }
+                return c;
             }
         }
 
@@ -45,13 +56,14 @@ namespace Spider
         {
             TManager = new ThreadManager(form);
             ProgressBackupTask = new Task(PeriodicBackup);
-
-            this.reporter = form;
-            this.MaxThreads = Environment.ProcessorCount;
+            
+            reporter = form;
+            MaxThreads = Environment.ProcessorCount;
 
             Database = DBController.GetInstance();
 
-            Scheduled_links = new ConcurrentQueue<string>();
+            temp_list = null;
+
             HtmlParser.IntializeStopWords();
         }
 
@@ -65,9 +77,9 @@ namespace Spider
             string FileName = Properties.Settings.Default.PATH + Properties.Settings.Default.QueueFile;
             Stream TestFileStream = File.OpenRead(FileName);
             BinaryFormatter deserializer = new BinaryFormatter();
-            Scheduled_links = (ConcurrentQueue<String>)deserializer.Deserialize(TestFileStream);
+            Scheduled_links = (ConcurrentQueue<String>[])deserializer.Deserialize(TestFileStream);
             TestFileStream.Close();
-            this.StartProcess();
+            StartProcess();
         }
 
         public void DiscardPreWork()
@@ -77,7 +89,9 @@ namespace Spider
 
         public void StartProcess()
         {
+            Scheduled_links = temp_list.ToArray();
             TManager.SetQueue(Scheduled_links);
+            temp_list = null;
             TManager.StartProcess();
             if (!(ProgressBackupTask.Status == TaskStatus.Running))
             {
@@ -103,41 +117,42 @@ namespace Spider
             reporter.Invoke(reporter.ReportDBSaving);
             Database.SaveToDisk();
 
-            if (Scheduled_links.Count == 0)
+            int count = 0;
+
+            if (Scheduled_links == null)
+                return;
+
+            foreach(var q in Scheduled_links)
+            {
+                count += q.Count;
+            }
+
+            if (count == 0)
                 return;
 
             Stream TestFileStream = File.Create(FileName);
             BinaryFormatter serializer = new BinaryFormatter();
-            serializer.Serialize(TestFileStream, this.Scheduled_links);
+            serializer.Serialize(TestFileStream, Scheduled_links);
             TestFileStream.Close();
             reporter.Invoke(reporter.ReportDBSaved);
         }
 
         public bool Seed(string seed)
         {
+            if (temp_list == null)
+            {
+                temp_list = new LinkedList<ConcurrentQueue<string>>();
+            }
+
             if (!Database.LinkExists(seed) && RobotstxtParser.Approved(seed))
             {
-                Scheduled_links.Enqueue(seed);
+                ConcurrentQueue<string> queue = new ConcurrentQueue<string>();
+                queue.Enqueue(seed);
+                temp_list.AddLast(queue);
                 reporter.Invoke(reporter.ReportQueued, seed + Environment.NewLine);
                 return true;
             }
             return false;
-        }
-
-        //Is this step really necessary ? Practical runs showed only <1k out of 11k are duplicates
-        private void RemoveQueueDuplicates()
-        {
-            ConcurrentQueue<string> temp = new ConcurrentQueue<string>();
-
-            foreach (var link in Scheduled_links)
-            {
-                if (Database.LinkExists(link))
-                    Database.LinkHit(link);
-                else
-                    temp.Enqueue(link);
-            }
-
-            Scheduled_links = temp;
         }
 
         public void AbortAll()
@@ -147,7 +162,6 @@ namespace Spider
             new Task(() =>
                 {
                     TManager.WaitAll();
-                    //RemoveQueueDuplicates();
                     SaveWork();
                     reporter.Invoke(reporter.CancellationFinished);
                 }).Start();

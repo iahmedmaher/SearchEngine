@@ -25,20 +25,20 @@ namespace Spider
         {
             InitializeComponent();
             
-            ReportProcessed = new Action<string>(this.reportprocessed);
-            ReportQueued = new Action<string>(this.reportqueued);
-            ReportStartProcessing = new Action<string>(this.reportstartprocessing);
-            ReportStatistics=new Action<Dictionary<string,int>>(this.reportstat);
-            ReportFinished = new Action(this.reportfinished);
-            CancellationFinished = new Action(this.closethis);
-            ReportDBSaving = new Action(this.reportDBSaveStart);
-            ReportDBSaved = new Action(this.reportDBSaveFinish);
+            ReportProcessed = new Action<string>(reportprocessed);
+            ReportQueued = new Action<string>(reportqueued);
+            ReportStartProcessing = new Action<string>(reportstartprocessing);
+            ReportStatistics=new Action<Dictionary<string,int>>(reportstat);
+            ReportFinished = new Action(reportfinished);
+            CancellationFinished = new Action(closethis);
+            ReportDBSaving = new Action(reportDBSaveStart);
+            ReportDBSaved = new Action(reportDBSaveFinish);
 
             closeready = false;
-            this.QueueCount.Text = "";
-            this.ProcessCount.Text = "";
-            this.toolStripStatusLabel1.Text = "";
-            this.toolStripStatusLabel2.Text = "";
+            QueueCount.Text = "";
+            ProcessCount.Text = "";
+            toolStripStatusLabel1.Text = "";
+            toolStripStatusLabel2.Text = "";
             controller = new Controller(this);
             processedcount = controller.ProcessedCount;
         }
@@ -54,7 +54,7 @@ namespace Spider
         private void closethis()
         {
             closeready = true;
-            this.Close();
+            Close();
         }
 
         private void reportstat(Dictionary<string,int> dictionary)
@@ -82,9 +82,9 @@ namespace Spider
 
         private void reportprocessed(string link)
         {
-            this.processedcount++;
+            processedcount++;
             textProcessed.AppendText(link + Environment.NewLine);
-            ProcessCount.Text = this.processedcount.ToString();
+            ProcessCount.Text = processedcount.ToString();
 
             toolStripStatusLabel1.Text = "Data Received: ";
             
@@ -131,8 +131,8 @@ namespace Spider
         {
             if (!closeready)
             {
-                this.Cursor = Cursors.WaitCursor;
-                this.textProcessed.Cursor = this.textQueued.Cursor = this.dataGridView1.Cursor = this.URLtextBox.Cursor = this.MaxThreads.Cursor = this.button1.Cursor = this.Cursor;
+                Cursor = Cursors.WaitCursor;
+                textProcessed.Cursor = textQueued.Cursor = dataGridView1.Cursor = URLtextBox.Cursor = MaxThreads.Cursor = button1.Cursor = Cursor;
                 savingwork.Show();
                 controller.AbortAll();
                 e.Cancel = true;

@@ -40,7 +40,7 @@ namespace Spider
 
         public HtmlParser(string html, string link)
         {
-            this.SourceLink = link;
+            SourceLink = link;
             doc = new HtmlDocument();
 
             doc.LoadHtml(html);
