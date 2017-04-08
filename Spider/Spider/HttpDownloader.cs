@@ -23,22 +23,20 @@ namespace Spider
         {
 
         }
-        
 
-        private static string __getrequiredcontent(string Link,string ContentType)
+
+        private static Tuple<string, string> __getrequiredcontent(string Link, string ContentType)
         {
             try
             {
-                HttpWebRequest request = (HttpWebRequest) WebRequest.Create(Link);
+                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(Link);
 
-                request.UserAgent = "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; .NET CLR 1.0.3705;)";
+                //"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; .NET CLR 1.0.3705;)";
+                //"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36";
+                request.UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36";
 
                 request.KeepAlive = false;
-
-                //request.Headers.Add("user-agent", "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; .NET CLR 1.0.3705;)");
-
-                //request.Headers.Add(HttpRequestHeader.UserAgent, "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36");
-
+                
                 using (WebResponse response = request.GetResponse())
                 {
                     if (!response.Headers[HttpResponseHeader.ContentType].Contains(ContentType))
@@ -62,7 +60,7 @@ namespace Spider
 
                     Stream dataStream = response.GetResponseStream();
 
-                    using (StreamReader reader = new StreamReader(dataStream,encoding))
+                    using (StreamReader reader = new StreamReader(dataStream, encoding))
                     {
                         if (Controller.OperationCancelled)
                         {
@@ -70,9 +68,8 @@ namespace Spider
                         }
                         string html = reader.ReadToEnd();
                         Interlocked.Add(ref Totaldata, encoding.GetByteCount(html));
-                        return html;
+                        return new Tuple<string, string>(html, response.ResponseUri.AbsoluteUri);
                     }
-
                 }
             }
             catch (Exception)
@@ -81,14 +78,17 @@ namespace Spider
             }
         }
 
-        public static string GetHtml(string link)
+        public static Tuple<string, string> GetHtml(string link)
         {
             return __getrequiredcontent(link, "html");
         }
 
         public static string GetRobotsTxt(string domain)
         {
-            return __getrequiredcontent("http://" + domain + "/robots.txt", "text");                       
+            var res = __getrequiredcontent("http://" + domain + "/robots.txt", "text");
+            if (res == null)
+                return null;
+            return res.Item1;
         }
 
     }

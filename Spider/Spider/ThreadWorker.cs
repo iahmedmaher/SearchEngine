@@ -22,10 +22,8 @@ namespace Spider
             if (Controller.OperationCancelled)
                 return;
 
-
             string link = (obj as ThreadParameter).link;
             ConcurrentQueue<string> Scheduled_links = (obj as ThreadParameter).queue;
-
 
             bool Revisted = false;
 
@@ -54,16 +52,17 @@ namespace Spider
 
             reporter.Invoke(reporter.ReportStartProcessing, link);
 
-            string html = HttpDownloader.GetHtml(link);
+            var response = HttpDownloader.GetHtml(link);
 
             if (Controller.OperationCancelled)
                 return;
 
-
-            if (html == null)
+            if (response == null)
                 return;
+            
+            HtmlParser doc = new HtmlParser(response.Item1, link);
 
-            HtmlParser doc = new HtmlParser(html, link);
+            link = response.Item2;  //Get reponse redirect link
 
             int linkscount = 0;
 
@@ -73,25 +72,19 @@ namespace Spider
                 IEnumerable<string> links_list = doc.GetOutGoingLinks();
                 HashSet<string> Distinct = new HashSet<string>(links_list);
                 StringBuilder queued = new StringBuilder();
-                
+
 
                 foreach (string Link in Distinct)
                 {
-                    if (!Link.Contains("#"))
-                    {
-                        linkscount++;
+                    linkscount++;
 
-                        Scheduled_links.Enqueue(Link);
+                    Scheduled_links.Enqueue(Link);
+                    
+                    if (Controller.OperationCancelled)
+                        return;
 
-
-                        if (Controller.OperationCancelled)
-                            return;
-
-                        queued.Append(Link);
-                        queued.Append(Environment.NewLine);
-
-                    }
-
+                    queued.Append(Link);
+                    queued.Append(Environment.NewLine);
                 }
 
                 reporter.Invoke(reporter.ReportQueued, queued.ToString());
@@ -100,6 +93,8 @@ namespace Spider
             string title = doc.GetTitle();
 
             string PlainText = doc.PlainText();
+
+            Dictionary<string, string> images = doc.ImagesVectors();
 
             Dictionary<string, int> dictionary = doc.KeywordsVectors();
 
@@ -129,6 +124,7 @@ namespace Spider
                 Database.AddLink(link, title, linkscount);
                 Database.AddPageVector(link, dictionary);
                 Database.AddPageContent(link, PlainText);
+                Database.AddPageImages(link, images);
             }
 
 

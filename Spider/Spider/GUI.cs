@@ -45,9 +45,7 @@ namespace Spider
 
         private void reportfinished()
         {
-            URLtextBox.Enabled = true;
-            MaxThreads.Enabled = true; 
-            button1.Enabled = true;
+            URLtextBox.Enabled = true; 
             button2.Enabled = true;
         }
 
@@ -173,6 +171,7 @@ namespace Spider
             if (controller.Seed(URLtextBox.Text))
             {
                 button1.Enabled = true;
+                URLtextBox.Text = "";
             }
             else
             {

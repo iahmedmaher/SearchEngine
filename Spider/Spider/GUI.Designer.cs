@@ -44,9 +44,9 @@
             this.button2 = new System.Windows.Forms.Button();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
+            this.dummylabel = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStripStatusLabel2 = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStripProgressBar1 = new System.Windows.Forms.ToolStripProgressBar();
-            this.dummylabel = new System.Windows.Forms.ToolStripStatusLabel();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.MaxThreads)).BeginInit();
             this.savingwork.SuspendLayout();
@@ -218,6 +218,12 @@
             this.toolStripStatusLabel1.Size = new System.Drawing.Size(84, 17);
             this.toolStripStatusLabel1.Text = "Data Received:";
             // 
+            // dummylabel
+            // 
+            this.dummylabel.Name = "dummylabel";
+            this.dummylabel.Size = new System.Drawing.Size(777, 17);
+            this.dummylabel.Spring = true;
+            // 
             // toolStripStatusLabel2
             // 
             this.toolStripStatusLabel2.Name = "toolStripStatusLabel2";
@@ -231,12 +237,6 @@
             this.toolStripProgressBar1.Size = new System.Drawing.Size(100, 16);
             this.toolStripProgressBar1.Style = System.Windows.Forms.ProgressBarStyle.Marquee;
             this.toolStripProgressBar1.Visible = false;
-            // 
-            // dummylabel
-            // 
-            this.dummylabel.Name = "dummylabel";
-            this.dummylabel.Size = new System.Drawing.Size(777, 17);
-            this.dummylabel.Spring = true;
             // 
             // GUI
             // 

@@ -12,14 +12,14 @@ namespace Spider
     class HtmlParser
     {
         /*** Ranking:
-           * keywords(14) -> Title (12) -> description (11) -> H1 (10) -> H2 (8) -> H3 (6) -> H4 (5) -> H5 (5) -> H6 (5) -> b or strong (3) -> P or others (1)
+           * keywords(25) -> Title (30) -> description (20) -> H1 (10) -> H2 (8) -> H3 (6) -> H4 (5) -> H5 (5) -> H6 (5) -> b or strong (3) -> P or others (1)
            *
            ***/
 
         private static readonly Dictionary<string, int> Ranker = new Dictionary<string, int>(){
-           {"keywords",14 },
-           {"title",12},
-           {"description",11 },
+           {"keywords",50 },
+           {"title",50},
+           {"description",50 },
            {"h1",10},
            {"h2",8},
            {"h3",6},
@@ -37,6 +37,7 @@ namespace Spider
 
         private string SourceLink;
 
+        private string title;
 
         public HtmlParser(string html, string link)
         {
@@ -46,6 +47,11 @@ namespace Spider
             doc.LoadHtml(html);
 
             doc.DocumentNode.Descendants().Where(n => n.Name == "script" || n.Name == "style" || n.NodeType == HtmlAgilityPack.HtmlNodeType.Comment).ToList().ForEach(n => n.Remove());
+
+            var titletag = doc.DocumentNode.SelectSingleNode("//title");
+
+            if (titletag != null)
+                title = HttpUtility.HtmlDecode(titletag.InnerHtml);
         }
 
         public static void IntializeStopWords()
@@ -59,14 +65,33 @@ namespace Spider
 
         private string FixLink(string link)
         {
-            if (!link.StartsWith(@"http://") && !link.StartsWith(@"https://") && !link.StartsWith(@"mailto:") && !link.StartsWith(@"tel:"))
+            link = link.Replace(@"https://", @"http://");
+            link = link.TrimEnd('/');
+
+            if (link.StartsWith(@"mailto:") || link.StartsWith(@"tel:"))
             {
-                if (link.StartsWith("//"))
-                    return "http:" + link;
-                else
-                    return new Uri(new Uri(SourceLink), link).AbsoluteUri;
+                return null;
             }
 
+            if (!link.StartsWith(@"http://"))
+            {
+                if (link.StartsWith("//"))
+                {
+                    return "http:" + link;
+                }
+                else
+                {
+                    try
+                    {
+                        string str = new Uri(new Uri(SourceLink), link).AbsoluteUri;
+                        return str.Replace(@"https://", @"http://");
+                    }
+                    catch(UriFormatException)
+                    {
+                        return null;
+                    }
+                }
+            }
             return link;
         }
 
@@ -79,7 +104,8 @@ namespace Spider
                 foreach (var node in links_nodes)
                 {
                     current_link = FixLink(node.Attributes["href"].Value);
-                    if (current_link.StartsWith("http"))
+
+                    if (current_link != null && current_link.StartsWith("http") && !current_link.Contains("#"))
                         yield return current_link;
                 }
             }
@@ -88,10 +114,7 @@ namespace Spider
 
         public string GetTitle()
         {
-            var title = doc.DocumentNode.SelectSingleNode("//title");
-            if (title != null)
-                return HttpUtility.HtmlDecode(title.InnerHtml);
-            return null;
+            return title;
         }
 
         public string GetMetaKeywords()
@@ -140,6 +163,38 @@ namespace Spider
             return text + HttpUtility.HtmlDecode(string.Join(" ", doc.DocumentNode.Descendants()
                         .Where(n => !n.HasChildNodes && !string.IsNullOrWhiteSpace(n.InnerText))
                         .Select(n => n.InnerText)));
+        }
+
+        public Dictionary<string, string> ImagesVectors()
+        {
+            Dictionary<string, string> imagesdictionary = new Dictionary<string, string>();
+            var images = doc.DocumentNode.SelectNodes("//img[@src]");
+            string link;
+            string alt;
+
+            if (images == null)
+                return imagesdictionary;
+
+            foreach (HtmlNode img in images)
+            {
+                link = FixLink(img.Attributes["src"].Value);
+
+                if (link == null)
+                    continue;
+
+                alt = null;
+                if (img.Attributes["alt"] != null && img.Attributes["alt"].Value != "")
+                {
+                    alt = img.Attributes["alt"].Value;
+                }
+                else
+                {
+                    alt = null;
+                }
+                if (!imagesdictionary.ContainsKey(link) && alt != null)
+                    imagesdictionary.Add(link, alt);
+            }
+            return imagesdictionary;
         }
 
         public Dictionary<string, int> KeywordsVectors()

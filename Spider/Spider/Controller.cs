@@ -89,7 +89,9 @@ namespace Spider
 
         public void StartProcess()
         {
-            Scheduled_links = temp_list.ToArray();
+            if (temp_list != null) 
+                Scheduled_links = temp_list.ToArray();
+
             TManager.SetQueue(Scheduled_links);
             temp_list = null;
             TManager.StartProcess();

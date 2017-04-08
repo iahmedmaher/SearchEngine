@@ -12,6 +12,7 @@ namespace Spider
         object VectorTable;
         object PageContentTable;
         object LinkTableRead;
+        object ImageTable;
 
         //Redundant but added for speed
         HashSet<string> AddedSet;
@@ -19,6 +20,7 @@ namespace Spider
         System.Data.SQLite.SQLiteCommand GetLinkIdCommand;
         System.Data.SQLite.SQLiteCommand AddLinkCommand;
         System.Data.SQLite.SQLiteCommand AddPageVectorCommand;
+        System.Data.SQLite.SQLiteCommand AddPageImagesCommand;
         System.Data.SQLite.SQLiteCommand AddPageContentCommand;
         System.Data.SQLite.SQLiteCommand CheckLinkCountCommand;
         System.Data.SQLite.SQLiteCommand UpdateLinkInBoundCommand;
@@ -45,6 +47,8 @@ namespace Spider
 
             AddPageVectorCommand = database.PrepareStatement(@"INSERT INTO VECTOR(LID,Keyword,Rank) VALUES (@linkid, @keyword, @keywordrank)");
 
+            AddPageImagesCommand = database.PrepareStatement(@"INSERT INTO Images(LID,ImageLink,ImageAlt) VALUES (@linkid, @imagelink, @imagealt)");
+
             AddPageContentCommand = database.PrepareStatement(@"INSERT INTO PageContent SELECT ID, @content FROM URL WHERE URL=@link ");
             CheckLinkCountCommand = database.PrepareStatement(@"SELECT COUNT(*) FROM URL WHERE URL=@link");
             UpdateLinkInBoundCommand = database.PrepareStatement(@"UPDATE URL SET InBound=InBound+1 WHERE URL=@link ");
@@ -54,6 +58,7 @@ namespace Spider
             DeleteOldPageContent = database.PrepareStatement(@"DELETE FROM PageContent WHERE LID = (SELECT ID FROM URL WHERE URL=@link)");
 
             LinkTable = new object();
+            ImageTable = new object();
             LinkTableRead = new object();
             VectorTable = new object();
             PageContentTable = new object();
@@ -77,6 +82,10 @@ namespace Spider
             database.ExecuteNonQuery(sql);
 
             sql = "CREATE VIRTUAL TABLE IF NOT EXISTS PageContent USING fts4 (LID REFERENCES URL (ID) ON DELETE CASCADE ON UPDATE CASCADE, Content TEXT);";
+
+            database.ExecuteNonQuery(sql);
+
+            sql = "CREATE VIRTUAL TABLE IF NOT EXISTS Images USING fts4 (LID REFERENCES URL (ID) ON DELETE CASCADE ON UPDATE CASCADE, ImageLink VARCHAR(150), ImageAlt TEXT);";
 
             database.ExecuteNonQuery(sql);
         }
@@ -153,6 +162,31 @@ namespace Spider
             }
         }
 
+        public void AddPageImages(string link, Dictionary<string, string> images)
+        {
+            object LID;
+
+            lock (LinkTableRead)
+            {
+                GetLinkIdCommand.Parameters.AddWithValue("link", link);
+                LID = GetLinkIdCommand.ExecuteScalar();
+            }
+
+            foreach (var Image in images)
+            {
+                lock (ImageTable)
+                {
+                    if (Controller.OperationCancelled)
+                        return;
+                    //@linkid, @imagelink, @imagealt @linkid, @imagelink, @imagealt
+                    AddPageImagesCommand.Parameters.AddWithValue("linkid", LID);
+                    AddPageImagesCommand.Parameters.AddWithValue("imagelink", Image.Key);
+                    AddPageImagesCommand.Parameters.AddWithValue("imagealt", Image.Value);
+                    AddPageImagesCommand.ExecuteNonQuery();
+                }
+            }
+        }
+
         public void AddPageContent(string link, string content)
         {
             lock (PageContentTable)
@@ -216,7 +250,7 @@ namespace Spider
 
         public void SaveToDisk()
         {
-            lock (LinkTable) lock (VectorTable) lock (PageContentTable)
+            lock (LinkTable) lock (VectorTable) lock (PageContentTable) lock (ImageTable)
                     {
                         database.SaveToDisk();
                     }
