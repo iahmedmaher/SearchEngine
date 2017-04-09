@@ -73,7 +73,7 @@ namespace Spider
 
             database.ExecuteNonQuery(sql);
 
-            sql = "CREATE VIRTUAL TABLE IF NOT EXISTS VECTOR USING fts3 (LID REFERENCES URL (ID) ON DELETE CASCADE ON UPDATE CASCADE,Keyword VARCHAR (20) NOT NULL, Rank INTEGER NOT NULL);";
+            sql = "CREATE VIRTUAL TABLE IF NOT EXISTS VECTOR USING fts3 (LID REFERENCES URL (ID) ON DELETE CASCADE ON UPDATE CASCADE,Keyword VARCHAR (20) NOT NULL, Rank REAL NOT NULL);";
 
             database.ExecuteNonQuery(sql);
 
@@ -136,7 +136,7 @@ namespace Spider
             }
         }
 
-        public void AddPageVector(string link, Dictionary<string, int> dictionary)
+        public void AddPageVector(string link, Dictionary<string, double> dictionary)
         {
             object LID;
 
@@ -197,7 +197,7 @@ namespace Spider
             }
         }
 
-        public void UpdatePageVector(string link, Dictionary<string, int> dictionary)
+        public void UpdatePageVector(string link, Dictionary<string, double> dictionary)
         {
             lock (VectorTable)
             {

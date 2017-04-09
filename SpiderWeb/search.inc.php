@@ -136,14 +136,18 @@ class NormalSearcher extends Searcher
 					$sqlcond=$sqlcond."".PorterStemmer::Stem(strtolower($near_arr[$i]))." OR ";
 			
 			$sqlcond=$sqlcond.PorterStemmer::Stem(strtolower(end($near_arr)))."'";
-		
-		
-		$sql=$sql.$sqlcond.' GROUP BY LID ORDER BY Sum(Rank) DESC LIMIT 10 OFFSET '. $this->page*10 .') AS SUB WHERE  URL.ID=SUB.LID ORDER BY R DESC;';
 
+			
 		$sql_count=$sql_count.$sqlcond;
 
 		$this->Rcount=$this->conn->query($sql_count)->fetchArray()['C'];
+
+		$totalCount=$this->conn->query("SELECT Count(ID) AS C FROM URL")->fetchArray()['C'];
 		
+		$idf = log10(floatval($totalCount)/(1+floatval($this->Rcount)));
+		
+		$sql=$sql.$sqlcond.' GROUP BY LID ORDER BY Sum(Rank)*'.$idf.' DESC LIMIT 10 OFFSET '. $this->page*10 .') AS SUB WHERE  URL.ID=SUB.LID ORDER BY R desc;';
+	
 		return $this->conn->query($sql);	
 	}
 }

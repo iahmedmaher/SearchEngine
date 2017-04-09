@@ -39,6 +39,8 @@ namespace Spider
 
         private string title;
 
+        private string PlainString;
+
         public HtmlParser(string html, string link)
         {
             SourceLink = link;
@@ -46,12 +48,14 @@ namespace Spider
 
             doc.LoadHtml(html);
 
-            doc.DocumentNode.Descendants().Where(n => n.Name == "script" || n.Name == "style" || n.NodeType == HtmlAgilityPack.HtmlNodeType.Comment).ToList().ForEach(n => n.Remove());
+            doc.DocumentNode.Descendants().Where(n => n.Name == "script" || n.Name == "style" || n.Name == "noscript" || n.NodeType == HtmlNodeType.Comment).ToList().ForEach(n => n.Remove());
 
             var titletag = doc.DocumentNode.SelectSingleNode("//title");
 
             if (titletag != null)
                 title = HttpUtility.HtmlDecode(titletag.InnerHtml);
+
+            SetPlainText();
         }
 
         public static void IntializeStopWords()
@@ -147,7 +151,7 @@ namespace Spider
             }
         }
 
-        public string PlainText()
+        private void SetPlainText()
         {
             string text = "";
             string description = GetMetaDescription();
@@ -160,9 +164,14 @@ namespace Spider
             {
                 text += keywords;
             }
-            return text + HttpUtility.HtmlDecode(string.Join(" ", doc.DocumentNode.Descendants()
+            PlainString = text + HttpUtility.HtmlDecode(string.Join(" ", doc.DocumentNode.Descendants()
                         .Where(n => !n.HasChildNodes && !string.IsNullOrWhiteSpace(n.InnerText))
                         .Select(n => n.InnerText)));
+        }
+
+        public string PlainText()
+        {
+            return PlainString;
         }
 
         public Dictionary<string, string> ImagesVectors()
@@ -197,9 +206,11 @@ namespace Spider
             return imagesdictionary;
         }
 
-        public Dictionary<string, int> KeywordsVectors()
+        public Dictionary<string, double> KeywordsVectors()
         {
-            Dictionary<string, int> dictionary = new Dictionary<string, int>();
+            double divider = 0;
+
+            Dictionary<string, double> dictionary = new Dictionary<string, double>();
 
             GetMeta(dictionary);
 
@@ -228,6 +239,7 @@ namespace Spider
                         {
                             IStemmer p = new Porter2();
                             word = p.stem(word);
+
                             if (dictionary.ContainsKey(word))
                                 dictionary[word] += NodeType.Value;
                             else
@@ -239,10 +251,17 @@ namespace Spider
                 Nodes.ToList().ForEach(N => N.Remove());
             }
 
+            divider = dictionary.Values.Max();
+
+            foreach(var Key in dictionary.Keys.ToList())
+            {
+                dictionary[Key] = Math.Round(dictionary[Key] / divider, 4);
+            }
+
             return dictionary;
         }
 
-        private void GetMeta(Dictionary<string, int> dictionary)
+        private void GetMeta(Dictionary<string, double> dictionary)
         {
             string description = GetMetaDescription();
 

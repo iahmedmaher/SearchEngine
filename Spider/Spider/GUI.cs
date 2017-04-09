@@ -11,7 +11,7 @@ namespace Spider
         public Action<string> ReportQueued { private set; get; }
         public Action<string> ReportProcessed { private set; get; }
         public Action<string> ReportStartProcessing { private set; get; }
-        public Action<Dictionary<string, int>> ReportStatistics { private set; get; }
+        public Action<Dictionary<string, double>> ReportStatistics { private set; get; }
         public Action ReportFinished { private set; get; }
         public Action CancellationFinished { private set; get; }
         public Action ReportDBSaving { private set; get; }
@@ -28,7 +28,7 @@ namespace Spider
             ReportProcessed = new Action<string>(reportprocessed);
             ReportQueued = new Action<string>(reportqueued);
             ReportStartProcessing = new Action<string>(reportstartprocessing);
-            ReportStatistics=new Action<Dictionary<string,int>>(reportstat);
+            ReportStatistics=new Action<Dictionary<string,double>>(reportstat);
             ReportFinished = new Action(reportfinished);
             CancellationFinished = new Action(closethis);
             ReportDBSaving = new Action(reportDBSaveStart);
@@ -55,7 +55,7 @@ namespace Spider
             Close();
         }
 
-        private void reportstat(Dictionary<string,int> dictionary)
+        private void reportstat(Dictionary<string,double> dictionary)
         {
             DataTable dt = new DataTable();
             DataRow dr;
