@@ -125,9 +125,6 @@ class NormalSearcher extends Searcher
 
 		$sql_count = "SELECT count(DISTINCT LID) AS C FROM VECTOR WHERE Keyword MATCH '";
 		
-		$sql="SELECT URL.ID,URL.URL,URL.Title,URL.TIMESTAMP FROM URL,(SELECT LID,Sum(Rank) AS R FROM VECTOR WHERE Keyword MATCH '";
-		
-		
 			$sqlcond="";
 		
 			$near_arr=explode(" ",$this->normalquery);
@@ -145,8 +142,11 @@ class NormalSearcher extends Searcher
 		$totalCount=$this->conn->query("SELECT Count(ID) AS C FROM URL")->fetchArray()['C'];
 		
 		$idf = log10(floatval($totalCount)/(1+floatval($this->Rcount)));
+
+				
+		$sql="SELECT URL.ID,URL.URL,URL.Title,URL.TIMESTAMP FROM URL,(SELECT LID,(0.5+0.5*Sum(Rank))*".$idf." AS R FROM VECTOR WHERE Keyword MATCH '";
 		
-		$sql=$sql.$sqlcond.' GROUP BY LID ORDER BY Sum(Rank)*'.$idf.' DESC LIMIT 10 OFFSET '. $this->page*10 .') AS SUB WHERE  URL.ID=SUB.LID ORDER BY R desc;';
+		$sql=$sql.$sqlcond.' GROUP BY LID ORDER BY Sum(Rank) DESC LIMIT 10 OFFSET '. $this->page*10 .') AS SUB WHERE  URL.ID=SUB.LID ORDER BY R desc;';
 	
 		return $this->conn->query($sql);	
 	}
