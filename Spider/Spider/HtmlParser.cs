@@ -158,11 +158,11 @@ namespace Spider
             string keywords = GetMetaKeywords();
             if (description != null)
             {
-                text += description;
+                text += (description + ' ');
             }
             if (keywords != null)
             {
-                text += keywords;
+                text += (keywords + ' ');
             }
             PlainString = text + HttpUtility.HtmlDecode(string.Join(" ", doc.DocumentNode.Descendants()
                         .Where(n => !n.HasChildNodes && !string.IsNullOrWhiteSpace(n.InnerText))

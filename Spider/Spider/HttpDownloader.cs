@@ -35,6 +35,9 @@ namespace Spider
                 //"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36";
                 request.UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36";
 
+                //prefer english language
+                request.Headers.Add("Accept-Language", "en-US,en;q=0.9");
+                
                 request.KeepAlive = false;
                 
                 using (WebResponse response = request.GetResponse())
