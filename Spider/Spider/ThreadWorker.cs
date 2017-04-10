@@ -94,7 +94,7 @@ namespace Spider
 
             string PlainText = doc.PlainText();
 
-            Dictionary<string, string> images = doc.ImagesVectors();
+            //Dictionary<string, string> images = doc.ImagesVectors();
 
             Dictionary<string, double> dictionary = doc.KeywordsVectors();
 
@@ -124,7 +124,7 @@ namespace Spider
                 Database.AddLink(link, title, linkscount);
                 Database.AddPageVector(link, dictionary);
                 Database.AddPageContent(link, PlainText);
-                Database.AddPageImages(link, images);
+                //Database.AddPageImages(link, images);
             }
 
 

@@ -119,18 +119,26 @@ class NormalSearcher extends Searcher
 	public function excute()
 	{
 		/*
-		Example QUERY (Optimized: LIMIT in the subquery before JOIN)
-		SELECT URL.ID,URL.URL,URL.Title,URL.TIMESTAMP FROM URL,(SELECT LID,(0.5+0.5*Sum(Rank))*idf AS R FROM VECTOR WHERE Keyword MATCH 'Visual OR studio' GROUP BY LID ORDER BY Sum(Rank) DESC LIMIT 10 OFFSET 0) AS SUB WHERE  URL.ID=SUB.LID ORDER BY (InBound) DESC, R DESC;
+		Example QUERY (Optimized: LIMIT in the subquery before JOIN, Fixed: Apply idf for each individual term)
+
+		SELECT URL.ID,URL.URL,URL.Title,URL.TIMESTAMP FROM URL,(SELECT LID,(0.5+0.5*Sum(Rank * (CASE Keyword WHEN 'microsoft' THEN 7.5359628770302 WHEN 'visual' THEN 10.511326860841 WHEN 'studio' THEN 8.6844919786096 END))) AS R FROM VECTOR WHERE Keyword MATCH 'microsoft OR visual OR studio' GROUP BY LID ORDER BY R DESC LIMIT 10 OFFSET 0) AS SUB WHERE URL.ID=SUB.LID ORDER BY R desc, length(URL) ASC;
+
 		*/
 
+		$idf_array = array();
+		
 		$sql_count = "SELECT count(DISTINCT LID) AS C FROM VECTOR WHERE Keyword MATCH '";
 		
 			$sqlcond="";
 		
 			$near_arr=explode(" ",$this->normalquery);
 			for($i=0;$i<sizeof($near_arr)-1;$i++)
+			{
 				if(strlen(trim($near_arr[$i]))>0)
+				{
 					$sqlcond=$sqlcond."".PorterStemmer::Stem(strtolower($near_arr[$i]))." OR ";
+				}
+			}
 			
 			$sqlcond=$sqlcond.PorterStemmer::Stem(strtolower(end($near_arr)))."'";
 
@@ -140,13 +148,26 @@ class NormalSearcher extends Searcher
 		$this->Rcount=$this->conn->query($sql_count)->fetchArray()['C'];
 
 		$totalCount=$this->conn->query("SELECT Count(ID) AS C FROM URL")->fetchArray()['C'];
-		
-		$idf = log10(floatval($totalCount)/(1+floatval($this->Rcount)));
 
-				
-		$sql="SELECT URL.ID,URL.URL,URL.Title,URL.TIMESTAMP FROM URL,(SELECT LID,(0.5+0.5*Sum(Rank))*".$idf." AS R FROM VECTOR WHERE Keyword MATCH '";
+		//calculate idf for each word
+		foreach($near_arr as $oword)
+		{
+			$word=PorterStemmer::Stem(strtolower($oword));
+			
+			$df = $this->conn->query("SELECT Count(DISTINCT LID) AS C FROM VECTOR WHERE Keyword MATCH '".$word."';")->fetchArray()['C'];
+			
+			$idf_array[$word]=$totalCount/(1+floatval($df));
+		}
 		
-		$sql=$sql.$sqlcond.' GROUP BY LID ORDER BY Sum(Rank) DESC LIMIT 10 OFFSET '. $this->page*10 .') AS SUB WHERE  URL.ID=SUB.LID ORDER BY R desc;';
+		$sql="SELECT URL.ID,URL.URL,URL.Title,URL.TIMESTAMP FROM URL,(SELECT LID,(0.5+0.5*Sum(Rank * (CASE Keyword";
+		
+		foreach ($idf_array as $key => $value)
+		{
+			$sql=$sql." WHEN '".$key."' THEN ". $value;
+		}
+		
+		$sql=$sql." END))) AS R FROM VECTOR WHERE Keyword MATCH '";
+		$sql=$sql.$sqlcond.' GROUP BY LID ORDER BY R DESC LIMIT 10 OFFSET '. $this->page*10 .') AS SUB WHERE  URL.ID=SUB.LID ORDER BY R desc, length(URL) ASC;';
 	
 		return $this->conn->query($sql);	
 	}

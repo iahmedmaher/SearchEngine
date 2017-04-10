@@ -208,6 +208,8 @@ namespace Spider
 
         public Dictionary<string, double> KeywordsVectors()
         {
+            IStemmer p = new Porter2();
+
             double divider = 0;
 
             Dictionary<string, double> dictionary = new Dictionary<string, double>();
@@ -237,7 +239,6 @@ namespace Spider
 
                         if (!stopwords.Contains(word))
                         {
-                            IStemmer p = new Porter2();
                             word = p.stem(word);
 
                             if (dictionary.ContainsKey(word))
@@ -251,7 +252,8 @@ namespace Spider
                 Nodes.ToList().ForEach(N => N.Remove());
             }
 
-            divider = dictionary.Values.Max();
+            if (dictionary.Keys.Count > 0)
+                divider = dictionary.Values.Max();
 
             foreach(var Key in dictionary.Keys.ToList())
             {
@@ -264,15 +266,17 @@ namespace Spider
         private void GetMeta(Dictionary<string, double> dictionary)
         {
             string description = GetMetaDescription();
+            IStemmer p = new Porter2();
 
             if (description != null)
             {
-                var arr = description.Split(' ');
-                foreach (var w in arr)
+                var arr = Regex.Matches(description, @"\b\w{2,}\b", RegexOptions.Compiled);
+
+                foreach (Match m in arr)
                 {
+                    var w = m.Value;
                     if (!stopwords.Contains(w) && w!=string.Empty)
                     {
-                        IStemmer p = new Porter2();
                         string stemmed = p.stem(w);
                         if (dictionary.ContainsKey(stemmed))
                             dictionary[stemmed] += Ranker["keywords"];
@@ -286,11 +290,10 @@ namespace Spider
 
             if (keywords != null)
             {
-                var arr = keywords.Split(',');
-                foreach (var w in arr)
+                var arr = Regex.Matches(keywords, @"\b\w{2,}\b", RegexOptions.Compiled);
+                foreach (Match m in arr)
                 {
-
-                    IStemmer p = new Porter2();
+                    var w = m.Value;
                     string stemmed = p.stem(w);
                     if (w != string.Empty)
                     {

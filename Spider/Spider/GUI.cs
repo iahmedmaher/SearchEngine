@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Windows.Forms;
+using System.Threading.Tasks;
 
 namespace Spider
 {
@@ -163,20 +164,32 @@ namespace Spider
 
         private void button2_Click(object sender, EventArgs e)
         {
+            Action EnableButton1 = new Action(() => button1.Enabled = true);
+            Action DisableButton2 = new Action(() => button2.Enabled = false);
+            Action EnableButton2 = new Action(() => button2.Enabled = true);
+            Action ResetUrlText = new Action(() => { URLtextBox.Text = string.Empty; URLtextBox.Enabled = true; });
+            Action DisplayFailure = new Action(() => MessageBox.Show(this, "Failed to seed with this link." + Environment.NewLine + "Either this link was already crawled before, or robots.txt does not permit crawling this page", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error));
+
             if (!URLtextBox.Text.StartsWith("http://") && !URLtextBox.Text.StartsWith("https://"))
                 URLtextBox.Text = "http://" + URLtextBox.Text;
 
-            controller.MaxThreads = Convert.ToInt32(MaxThreads.Value);
-
-            if (controller.Seed(URLtextBox.Text))
+            URLtextBox.Enabled = false;
+            string URL = URLtextBox.Text;           
+            
+            new Task(() =>
             {
-                button1.Enabled = true;
-                URLtextBox.Text = "";
-            }
-            else
-            {
-                MessageBox.Show(this, "Failed to seed with this link." + Environment.NewLine + "Either this link was already crawled before, or robots.txt does not permit crawling this page", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
+                Invoke(DisableButton2);
+                if (controller.Seed(URL))
+                {
+                    Invoke(EnableButton1);
+                }
+                else
+                {
+                    Invoke(DisplayFailure);
+                }
+                Invoke(ResetUrlText);
+                Invoke(EnableButton2);
+            }).Start();
         }
     }
 }
