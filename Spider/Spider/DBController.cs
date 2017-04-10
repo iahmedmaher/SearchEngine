@@ -10,17 +10,24 @@ namespace Spider
         DB database;
         object LinkTable;
         object VectorTable;
+        object PageContentTable;
+        object LinkTableRead;
+        object ImageTable;
 
         //Redundant but added for speed
         HashSet<string> AddedSet;
 
+        System.Data.SQLite.SQLiteCommand GetLinkIdCommand;
         System.Data.SQLite.SQLiteCommand AddLinkCommand;
         System.Data.SQLite.SQLiteCommand AddPageVectorCommand;
+        System.Data.SQLite.SQLiteCommand AddPageImagesCommand;
+        System.Data.SQLite.SQLiteCommand AddPageContentCommand;
         System.Data.SQLite.SQLiteCommand CheckLinkCountCommand;
         System.Data.SQLite.SQLiteCommand UpdateLinkInBoundCommand;
         System.Data.SQLite.SQLiteCommand UpdateLinkDateCommand;
         System.Data.SQLite.SQLiteCommand UpdateLinkTitleCommand;
         System.Data.SQLite.SQLiteCommand DeleteOldLinkVector;
+        System.Data.SQLite.SQLiteCommand DeleteOldPageContent;
 
         public static DBController GetInstance()
         {
@@ -34,16 +41,28 @@ namespace Spider
         private DBController()
         {
             database = DB.GetInstance();
+
+            GetLinkIdCommand = database.PrepareStatement(@"SELECT ID From URL WHERE URL=@link");
             AddLinkCommand = database.PrepareStatement(@"INSERT INTO URL(URL,Title,OutBound,TIMESTAMP) VALUES (@link,@title,@outbound,date('now'))");
-            AddPageVectorCommand = database.PrepareStatement(@"INSERT INTO VECTOR SELECT ID, @keyword, @keywordrank FROM URL WHERE URL=@link ");
+
+            AddPageVectorCommand = database.PrepareStatement(@"INSERT INTO VECTOR(LID,Keyword,Rank) VALUES (@linkid, @keyword, @keywordrank)");
+
+            AddPageImagesCommand = database.PrepareStatement(@"INSERT INTO Images(LID,ImageLink,ImageAlt) VALUES (@linkid, @imagelink, @imagealt)");
+
+            AddPageContentCommand = database.PrepareStatement(@"INSERT INTO PageContent SELECT ID, @content FROM URL WHERE URL=@link ");
             CheckLinkCountCommand = database.PrepareStatement(@"SELECT COUNT(*) FROM URL WHERE URL=@link");
             UpdateLinkInBoundCommand = database.PrepareStatement(@"UPDATE URL SET InBound=InBound+1 WHERE URL=@link ");
             UpdateLinkDateCommand = database.PrepareStatement(@"UPDATE URL SET TIMESTAMP = date('now') WHERE URL = @link");
             UpdateLinkTitleCommand = database.PrepareStatement(@"UPDATE URL SET Title = @title WHERE URL=@link");
             DeleteOldLinkVector = database.PrepareStatement(@"DELETE FROM VECTOR WHERE LID = (SELECT ID FROM URL WHERE URL=@link)");
+            DeleteOldPageContent = database.PrepareStatement(@"DELETE FROM PageContent WHERE LID = (SELECT ID FROM URL WHERE URL=@link)");
 
             LinkTable = new object();
+            ImageTable = new object();
+            LinkTableRead = new object();
             VectorTable = new object();
+            PageContentTable = new object();
+
             AddedSet = new HashSet<string>();
             Prepare();
         }
@@ -54,13 +73,21 @@ namespace Spider
 
             database.ExecuteNonQuery(sql);
 
-            sql = "CREATE TABLE IF NOT EXISTS VECTOR (LID REFERENCES URL (ID) ON DELETE CASCADE ON UPDATE CASCADE,Keyword VARCHAR (20) NOT NULL, Rank INTEGER NOT NULL);";
+            sql = "CREATE VIRTUAL TABLE IF NOT EXISTS VECTOR USING fts3 (LID REFERENCES URL (ID) ON DELETE CASCADE ON UPDATE CASCADE,Keyword VARCHAR (20) NOT NULL, Rank REAL NOT NULL);";
 
             database.ExecuteNonQuery(sql);
 
             sql = "CREATE UNIQUE INDEX IF NOT EXISTS UniqueURL ON URL (URL);";
-			
-			database.ExecuteNonQuery(sql);
+
+            database.ExecuteNonQuery(sql);
+
+            sql = "CREATE VIRTUAL TABLE IF NOT EXISTS PageContent USING fts4 (LID REFERENCES URL (ID) ON DELETE CASCADE ON UPDATE CASCADE, Content TEXT);";
+
+            database.ExecuteNonQuery(sql);
+
+            sql = "CREATE VIRTUAL TABLE IF NOT EXISTS Images USING fts4 (LID REFERENCES URL (ID) ON DELETE CASCADE ON UPDATE CASCADE, ImageLink VARCHAR(150), ImageAlt TEXT);";
+
+            database.ExecuteNonQuery(sql);
         }
 
         public void AddLink(string link, string title, int OutBound)
@@ -84,7 +111,7 @@ namespace Spider
             }
         }
 
-        public void UpdateLinkTitle(string link,string title)
+        public void UpdateLinkTitle(string link, string title)
         {
             lock (LinkTable)
             {
@@ -109,8 +136,15 @@ namespace Spider
             }
         }
 
-        public void AddPageVector(string link, Dictionary<string, int> dictionary)
+        public void AddPageVector(string link, Dictionary<string, double> dictionary)
         {
+            object LID;
+
+            lock (LinkTableRead)
+            {
+                GetLinkIdCommand.Parameters.AddWithValue("link", link);
+                LID = GetLinkIdCommand.ExecuteScalar();
+            }
 
             foreach (var word in dictionary)
             {
@@ -122,13 +156,48 @@ namespace Spider
                     //database.ExecuteNonQuery(sql);
                     AddPageVectorCommand.Parameters.AddWithValue("keyword", word.Key);
                     AddPageVectorCommand.Parameters.AddWithValue("keywordrank", word.Value);
-                    AddPageVectorCommand.Parameters.AddWithValue("link", link);
+                    AddPageVectorCommand.Parameters.AddWithValue("linkid", LID);
                     AddPageVectorCommand.ExecuteNonQuery();
                 }
             }
         }
 
-        public void UpdatePageVector(string link, Dictionary<string, int> dictionary)
+        public void AddPageImages(string link, Dictionary<string, string> images)
+        {
+            object LID;
+
+            lock (LinkTableRead)
+            {
+                GetLinkIdCommand.Parameters.AddWithValue("link", link);
+                LID = GetLinkIdCommand.ExecuteScalar();
+            }
+
+            foreach (var Image in images)
+            {
+                lock (ImageTable)
+                {
+                    if (Controller.OperationCancelled)
+                        return;
+                    //@linkid, @imagelink, @imagealt @linkid, @imagelink, @imagealt
+                    AddPageImagesCommand.Parameters.AddWithValue("linkid", LID);
+                    AddPageImagesCommand.Parameters.AddWithValue("imagelink", Image.Key);
+                    AddPageImagesCommand.Parameters.AddWithValue("imagealt", Image.Value);
+                    AddPageImagesCommand.ExecuteNonQuery();
+                }
+            }
+        }
+
+        public void AddPageContent(string link, string content)
+        {
+            lock (PageContentTable)
+            {
+                AddPageContentCommand.Parameters.AddWithValue("link", link);
+                AddPageContentCommand.Parameters.AddWithValue("content", content);
+                AddPageContentCommand.ExecuteNonQuery();
+            }
+        }
+
+        public void UpdatePageVector(string link, Dictionary<string, double> dictionary)
         {
             lock (VectorTable)
             {
@@ -136,6 +205,16 @@ namespace Spider
                 DeleteOldLinkVector.ExecuteNonQuery();
             }
             AddPageVector(link, dictionary);
+        }
+
+        public void UpdatePageContent(string link, string content)
+        {
+            lock (PageContentTable)
+            {
+                DeleteOldPageContent.Parameters.AddWithValue("link", link);
+                DeleteOldLinkVector.ExecuteNonQuery();
+            }
+            AddPageContent(link, content);
         }
 
         public bool LinkExists(string link)
@@ -171,8 +250,10 @@ namespace Spider
 
         public void SaveToDisk()
         {
-            database.SaveToDisk();
+            lock (LinkTable) lock (VectorTable) lock (PageContentTable) lock (ImageTable)
+                    {
+                        database.SaveToDisk();
+                    }
         }
-
     }
 }

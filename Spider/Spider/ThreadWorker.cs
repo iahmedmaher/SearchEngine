@@ -8,15 +8,13 @@ namespace Spider
 {
     class ThreadWorker
     {
-        ConcurrentQueue<string> Scheduled_links;
         DBController Database;
         GUI reporter;
 
-        public ThreadWorker(ConcurrentQueue<string> SL, GUI RP)
+        public ThreadWorker(GUI RP)
         {
-            this.Scheduled_links = SL;
-            this.Database = DBController.GetInstance();
-            this.reporter = RP;
+            Database = DBController.GetInstance();
+            reporter = RP;
         }
         
         public void ThreadProc(object obj)
@@ -24,7 +22,9 @@ namespace Spider
             if (Controller.OperationCancelled)
                 return;
 
-            string link = (string)obj;
+            string link = (obj as ThreadParameter).link;
+            ConcurrentQueue<string> Scheduled_links = (obj as ThreadParameter).queue;
+
             bool Revisted = false;
 
             if (Database.LinkExists(link))
@@ -52,49 +52,51 @@ namespace Spider
 
             reporter.Invoke(reporter.ReportStartProcessing, link);
 
-            string html = HtmlDownloader.GetHtml(link);
+            var response = HttpDownloader.GetHtml(link);
 
             if (Controller.OperationCancelled)
                 return;
 
-
-            if (html == null)
+            if (response == null)
                 return;
+            
+            HtmlParser doc = new HtmlParser(response.Item1, link);
+
+            link = response.Item2;  //Get reponse redirect link
 
             int linkscount = 0;
 
+
             if (!Revisted)
             {
-                IEnumerable<string> links_list = HtmlParser.GetOutGoingLinks(link, html);
+                IEnumerable<string> links_list = doc.GetOutGoingLinks();
                 HashSet<string> Distinct = new HashSet<string>(links_list);
                 StringBuilder queued = new StringBuilder();
-                
+
 
                 foreach (string Link in Distinct)
                 {
-                    if (!Link.Contains("#"))
-                    {
-                        linkscount++;
+                    linkscount++;
 
-                        Scheduled_links.Enqueue(Link);
+                    Scheduled_links.Enqueue(Link);
+                    
+                    if (Controller.OperationCancelled)
+                        return;
 
-
-                        if (Controller.OperationCancelled)
-                            return;
-
-                        queued.Append(Link);
-                        queued.Append(Environment.NewLine);
-
-                    }
-
+                    queued.Append(Link);
+                    queued.Append(Environment.NewLine);
                 }
 
                 reporter.Invoke(reporter.ReportQueued, queued.ToString());
             }
 
-            string title = HtmlParser.GetTitle(html);
+            string title = doc.GetTitle();
 
-            Dictionary<string, int> dictionary = HtmlParser.KeywordsVectors(html);
+            string PlainText = doc.PlainText();
+
+            //Dictionary<string, string> images = doc.ImagesVectors();
+
+            Dictionary<string, double> dictionary = doc.KeywordsVectors();
 
             if (dictionary == null)
                 return;
@@ -114,14 +116,15 @@ namespace Spider
             {
                 Database.UpdateLinkDate(link);
                 Database.UpdateLinkTitle(link, title);
-                Database.AddPageVector(link, dictionary);
+                Database.UpdatePageVector(link, dictionary);
+                Database.UpdatePageContent(link, PlainText);
             }
             else
             {
                 Database.AddLink(link, title, linkscount);
-
                 Database.AddPageVector(link, dictionary);
-            
+                Database.AddPageContent(link, PlainText);
+                //Database.AddPageImages(link, images);
             }
 
 

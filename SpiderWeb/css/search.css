@@ -3,8 +3,30 @@
   box-sizing: border-box;
 }
 
-form {
-  margin: 30px auto 110px;
+#loading {
+    background-color: #ffffff;
+    opacity: 0.5;
+    width: 100%;
+    height: 100%;
+    position: fixed;
+	z-index: 99999;
+}
+
+.advanceditem {
+	width:100%;
+	margin-top: 8px;
+    margin-bottom: 8px;
+}
+
+form.main {
+  margin-top: 30px; 
+  margin-bottom: 30px;
+}
+
+
+form.centered  {
+	margin-right: auto;
+	margin-left: auto;
 }
 
 .search_bar {
@@ -54,7 +76,7 @@ form {
   right: 0;
   bottom: 22%;
   left: 4%;
-  background: url("img/search-icon.svg") no-repeat center center;
+  background: url("images/search-icon.svg") no-repeat center center;
   background-size: contain;
 }
 .search_bar button[type=submit]:hover, .search_bar button[type=submit]:focus {

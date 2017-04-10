@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace Spider
@@ -31,7 +32,7 @@ namespace Spider
             }
             else
             {
-                string robotstxt = HtmlDownloader.GetRobotsTxt(domain);
+                string robotstxt = HttpDownloader.GetRobotsTxt(domain);
 
                 if (robotstxt == null)
                 {
@@ -49,11 +50,13 @@ namespace Spider
                 AllowCache.TryAdd(domain, Allows);
             }
 
+            StringBuilder PatternBuilder;
             string pattern;
 
             foreach (Match disallow in Disallows)
             {
-                pattern = disallow.Value.Replace(@"\", @"\\").Replace(@"/", @"\/").Replace(".", @"\.").Replace("?", @"\?").Replace("+", @"\+").Replace("*", @".*?").Replace("(", @"\(").Replace(")", @"\)").Replace("^", @"\^").Replace("$", @"\$").Replace("[", @"\[").Replace("]", @"]").Replace("{", @"\}").Replace("}", @"\}").Replace("|",@"\|");
+                PatternBuilder = new StringBuilder(disallow.Value).Replace(@"\", @"\\").Replace(@"/", @"\/").Replace(".", @"\.").Replace("?", @"\?").Replace("+", @"\+").Replace("*", @".*?").Replace("(", @"\(").Replace(")", @"\)").Replace("^", @"\^").Replace("$", @"\$").Replace("[", @"\[").Replace("]", @"]").Replace("{", @"\}").Replace("}", @"\}").Replace("|",@"\|");
+                pattern = PatternBuilder.ToString();
                 if (Regex.IsMatch(link, pattern))
                 {
                     allowed = false;
@@ -63,7 +66,8 @@ namespace Spider
 
             foreach (Match allow in Allows)
             {
-                pattern = allow.Value.Replace(@"\", @"\\").Replace(@"/", @"\/").Replace(".", @"\.").Replace("?", @"\?").Replace("+", @"\+").Replace("*", @".*?").Replace("(", @"\(").Replace(")", @"\)").Replace("^", @"\^").Replace("$", @"\$").Replace("[", @"\[").Replace("]", @"]").Replace("{", @"\}").Replace("}", @"\}").Replace("|", @"\|");
+                PatternBuilder = new StringBuilder(allow.Value).Replace(@"\", @"\\").Replace(@"/", @"\/").Replace(".", @"\.").Replace("?", @"\?").Replace("+", @"\+").Replace("*", @".*?").Replace("(", @"\(").Replace(")", @"\)").Replace("^", @"\^").Replace("$", @"\$").Replace("[", @"\[").Replace("]", @"]").Replace("{", @"\}").Replace("}", @"\}").Replace("|", @"\|");
+                pattern = PatternBuilder.ToString();
                 if (Regex.IsMatch(link, pattern))
                 {
                     allowed = true;

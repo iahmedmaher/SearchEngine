@@ -68,7 +68,7 @@ namespace Spider
 
         public SQLiteCommand PrepareStatement(string query)
         {
-            return new SQLiteCommand(query, this.connection);
+            return new SQLiteCommand(query, connection);
         }
 
         public void SaveToDisk()
