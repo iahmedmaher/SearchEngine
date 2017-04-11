@@ -3,8 +3,6 @@
 if(!isset($_GET["q"]))
 {die();}
 
-header('Content-Type: application/json');
-
 $q=$_GET["q"];
 
 $rows = array();

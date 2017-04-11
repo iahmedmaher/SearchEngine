@@ -1,5 +1,4 @@
 <?php
-header('Content-Type: application/json');
 include("search.inc.php");
 
 $user_query=$_GET["q"];
