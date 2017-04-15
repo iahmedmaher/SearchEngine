@@ -4,12 +4,24 @@ using System.Text;
 using System.Net;
 using System.Net.Mime;
 using System.Threading;
+using System.Collections.Concurrent;
 
 namespace Spider
 {
     class HttpDownloader
     {
         private static long Totaldata = 0;
+        private ConcurrentDictionary<string, string> DownloadedLinks;
+        private static HttpDownloader singleton;
+
+        public static HttpDownloader GetInstance()
+        {
+            if (singleton == null)
+            {
+                singleton = new HttpDownloader();
+            }
+            return singleton;
+        }
 
         public static long DataTransmitted
         {
@@ -19,14 +31,16 @@ namespace Spider
             }
         }
 
-        private HttpDownloader() 
+        private HttpDownloader()
         {
-
+            DownloadedLinks = new ConcurrentDictionary<string, string>();
         }
 
-
-        private static Tuple<string, string> __getrequiredcontent(string Link, string ContentType)
+        private string __getrequiredcontent(string Link, string ContentType)
         {
+            if (DownloadedLinks.ContainsKey(Link))
+                return null;
+            
             try
             {
                 HttpWebRequest request = (HttpWebRequest)WebRequest.Create(Link);
@@ -37,9 +51,9 @@ namespace Spider
 
                 //prefer english language
                 request.Headers.Add("Accept-Language", "en-US,en;q=0.9");
-                
+
                 request.KeepAlive = false;
-                
+
                 using (WebResponse response = request.GetResponse())
                 {
                     if (!response.Headers[HttpResponseHeader.ContentType].Contains(ContentType))
@@ -47,6 +61,8 @@ namespace Spider
                         return null;
                     }
 
+                    DownloadedLinks.TryAdd(Link, response.ResponseUri.AbsoluteUri);
+                    
                     var encoding = Encoding.UTF8; //The default of the web is UTF-8
 
                     var contentType = new ContentType(response.Headers[HttpResponseHeader.ContentType]);
@@ -71,7 +87,7 @@ namespace Spider
                         }
                         string html = reader.ReadToEnd();
                         Interlocked.Add(ref Totaldata, encoding.GetByteCount(html));
-                        return new Tuple<string, string>(html, response.ResponseUri.AbsoluteUri);
+                        return html;
                     }
                 }
             }
@@ -81,17 +97,24 @@ namespace Spider
             }
         }
 
-        public static Tuple<string, string> GetHtml(string link)
+        public string GetHtml(string link)
         {
             return __getrequiredcontent(link, "html");
         }
 
-        public static string GetRobotsTxt(string domain)
+        public string GetRobotsTxt(string domain)
         {
-            var res = __getrequiredcontent("http://" + domain + "/robots.txt", "text");
-            if (res == null)
-                return null;
-            return res.Item1;
+            return __getrequiredcontent("http://" + domain + "/robots.txt", "text");
+        }
+
+        public string GetRedirectOf(string link)
+        {
+            return DownloadedLinks[link];
+        }
+
+        public bool IsVisited(string Link)
+        {
+            return DownloadedLinks.ContainsKey(Link);
         }
 
     }

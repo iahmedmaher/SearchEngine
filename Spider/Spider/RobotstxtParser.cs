@@ -32,7 +32,7 @@ namespace Spider
             }
             else
             {
-                string robotstxt = HttpDownloader.GetRobotsTxt(domain);
+                string robotstxt = HttpDownloader.GetInstance().GetRobotsTxt(domain);
 
                 if (robotstxt == null)
                 {

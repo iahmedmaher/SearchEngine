@@ -167,7 +167,7 @@ class NormalSearcher extends Searcher
 		}
 		
 		$sql=$sql." END))) AS R FROM VECTOR WHERE Keyword MATCH '";
-		$sql=$sql.$sqlcond.' GROUP BY LID ORDER BY R DESC LIMIT 10 OFFSET '. $this->page*10 .') AS SUB WHERE  URL.ID=SUB.LID ORDER BY R desc, length(URL) ASC;';
+		$sql=$sql.$sqlcond.' GROUP BY LID ORDER BY R DESC LIMIT 10 OFFSET '. $this->page*10 .') AS SUB WHERE  URL.ID=SUB.LID ORDER BY R desc';//, length(URL) ASC;';
 		
 		return $this->conn->query($sql);	
 	}

@@ -255,12 +255,31 @@ namespace Spider
             if (dictionary.Keys.Count > 0)
                 divider = dictionary.Values.Max();
 
-            foreach(var Key in dictionary.Keys.ToList())
+            foreach (var Key in dictionary.Keys.ToList())
             {
                 dictionary[Key] = Math.Round(dictionary[Key] / divider, 4);
             }
 
+            word = p.stem(GetDomainWord());
+
+            if (dictionary.ContainsKey(word))
+                dictionary[word] += 1.25;
+            else
+                dictionary[word] = 1.25;
+
             return dictionary;
+        }
+
+        public string GetDomainWord()
+        {
+            var arr = new UriBuilder(SourceLink).Host.Split('.');
+
+            var arr2 = arr.TakeWhile((string part) => !(part == "com" || part == "org" || part == "net" || part == "int" || part == "edu" || part == "gov" || part == "mil"));
+
+            if (arr.Count() == arr2.Count())
+                return arr.ElementAt(arr.Count() - 2);
+
+            return arr2.Last();
         }
 
         private void GetMeta(Dictionary<string, double> dictionary)

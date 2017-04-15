@@ -13,10 +13,7 @@ namespace Spider
         object PageContentTable;
         object LinkTableRead;
         object ImageTable;
-
-        //Redundant but added for speed
-        HashSet<string> AddedSet;
-
+        
         System.Data.SQLite.SQLiteCommand GetLinkIdCommand;
         System.Data.SQLite.SQLiteCommand AddLinkCommand;
         System.Data.SQLite.SQLiteCommand AddPageVectorCommand;
@@ -62,8 +59,7 @@ namespace Spider
             LinkTableRead = new object();
             VectorTable = new object();
             PageContentTable = new object();
-
-            AddedSet = new HashSet<string>();
+            
             Prepare();
         }
 
@@ -98,7 +94,6 @@ namespace Spider
                 AddLinkCommand.Parameters.AddWithValue("title", title);
                 AddLinkCommand.Parameters.AddWithValue("outbound", OutBound);
                 AddLinkCommand.ExecuteNonQuery();
-                AddedSet.Add(link);
             }
         }
 
@@ -221,9 +216,6 @@ namespace Spider
         {
             lock (LinkTable)
             {
-                if (AddedSet.Contains(link))
-                    return true;
-
                 CheckLinkCountCommand.Parameters.AddWithValue("link", link);
                 object count = CheckLinkCountCommand.ExecuteScalar();
 

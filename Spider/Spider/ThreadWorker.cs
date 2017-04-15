@@ -22,10 +22,55 @@ namespace Spider
             if (Controller.OperationCancelled)
                 return;
 
+            HttpDownloader downloader = HttpDownloader.GetInstance();
+
             string link = (obj as ThreadParameter).link;
             ConcurrentQueue<string> Scheduled_links = (obj as ThreadParameter).queue;
 
             bool Revisted = false;
+            
+            if(downloader.IsVisited(link))
+            {
+                Database.LinkHit(downloader.GetRedirectOf(link));
+                return;
+            }
+            /*
+            else if (Database.LinkExists(link))
+            {
+                Database.LinkHit(link);
+
+                if ((DateTime.Now - Database.GetLinkDate(link).GetValueOrDefault()).TotalDays >= 7)
+                {
+                    Revisted = true;
+                }
+                else
+                {
+                    return;
+                }
+            }
+            */
+            if (!RobotstxtParser.Approved(link))
+            {
+                return;
+            }
+
+
+            if (Controller.OperationCancelled)
+                return;
+
+            reporter.Invoke(reporter.ReportStartProcessing, link);
+
+            var response = downloader.GetHtml(link);
+
+            if (Controller.OperationCancelled)
+                return;
+
+            if (response == null)
+                return;
+            
+            HtmlParser doc = new HtmlParser(response, link);
+
+            link = downloader.GetRedirectOf(link);  //Get reponse redirect link
 
             if (Database.LinkExists(link))
             {
@@ -40,29 +85,6 @@ namespace Spider
                     return;
                 }
             }
-
-            if (!RobotstxtParser.Approved(link))
-            {
-                return;
-            }
-
-
-            if (Controller.OperationCancelled)
-                return;
-
-            reporter.Invoke(reporter.ReportStartProcessing, link);
-
-            var response = HttpDownloader.GetHtml(link);
-
-            if (Controller.OperationCancelled)
-                return;
-
-            if (response == null)
-                return;
-            
-            HtmlParser doc = new HtmlParser(response.Item1, link);
-
-            link = response.Item2;  //Get reponse redirect link
 
             int linkscount = 0;
 
