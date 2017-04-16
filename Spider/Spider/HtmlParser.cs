@@ -51,9 +51,9 @@ namespace Spider
             doc.DocumentNode.Descendants().Where(n => n.Name == "script" || n.Name == "style" || n.Name == "noscript" || n.NodeType == HtmlNodeType.Comment).ToList().ForEach(n => n.Remove());
 
             var titletag = doc.DocumentNode.SelectSingleNode("//title");
-
+            
             if (titletag != null)
-                title = HttpUtility.HtmlDecode(titletag.InnerHtml);
+                title = HttpUtility.HtmlDecode(titletag.InnerHtml).Trim();
 
             SetPlainText();
         }
