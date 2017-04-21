@@ -267,7 +267,25 @@ namespace Spider
             else
                 dictionary[word] = 1.25;
 
+            foreach (string LinkWord in GetLinkWords())
+            {
+                word = p.stem(LinkWord);
+                if (dictionary.ContainsKey(word))
+                    dictionary[word] += 0.15;
+                else
+                    dictionary[word] = 0.8;
+            }
             return dictionary;
+        }
+
+        public IEnumerable<string> GetLinkWords()
+        {
+            string abs = new Uri(SourceLink).AbsolutePath;
+            var words = Regex.Matches(abs, @"\b[a-zA-Z]{2,}\b");
+            foreach(Match mtch in words)
+            {
+                yield return mtch.Value;
+            }
         }
 
         public string GetDomainWord()
