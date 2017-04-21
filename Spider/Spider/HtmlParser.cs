@@ -280,9 +280,10 @@ namespace Spider
 
         public IEnumerable<string> GetLinkWords()
         {
-            string abs = new Uri(SourceLink).AbsolutePath;
+            string abs = Regex.Replace(new Uri(SourceLink).AbsolutePath, @"\?.*", string.Empty);
+            abs = Regex.Replace(abs, @"\..*?(?=(\/|$))", string.Empty);
             var words = Regex.Matches(abs, @"\b[a-zA-Z]{2,}\b");
-            foreach(Match mtch in words)
+            foreach (Match mtch in words)
             {
                 yield return mtch.Value;
             }
