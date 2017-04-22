@@ -15,7 +15,7 @@ if(!isset($_GET["advanced"]))
 }
 
 if(isset($_GET["page"]))
-	$page=$_GET["page"];
+	$page=$_GET["page"]-1;
 else
 	$page=0;
 
@@ -163,7 +163,7 @@ $(document).ready(function(){
 		$upperlimit = floor(($s->GetCount()-1)/10);
 		
         if($page!=0):
-        $url=preg_replace("/page=\d{1,4}/i","page=".($page-1),$url);
+        $url=preg_replace("/page=\d{1,4}/i","page=".($page),$url);
         ?>
 
         <a href="<?php echo $url ?>">&laquo;</a>
@@ -173,7 +173,7 @@ $(document).ready(function(){
         <?php
         
 		for($i=0;$i<10 and $page_n<=$upperlimit;$i++):
-			$url=preg_replace("/page=\d{1,4}/i","page=".($page_n),$url);
+			$url=preg_replace("/page=\d{1,4}/i","page=".($page_n+1),$url);
 
         ?> 
   
@@ -186,7 +186,7 @@ $(document).ready(function(){
   
         <?php
         if($page<$upperlimit):
-        $url=preg_replace("/page=\d{1,4}/i","page=".($page+1),$url);
+        $url=preg_replace("/page=\d{1,4}/i","page=".($page+2),$url);
         ?>
         <a href="<?php echo $url ?>">&raquo;</a>
   
