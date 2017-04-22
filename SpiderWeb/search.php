@@ -93,8 +93,8 @@ $(document).ready(function(){
 		if($defineterm->is_ambiguous()):
 	?>
 		
-		<div class="single-result" id="results-warn">
-		<h5>Hint: Your search seems to be too general or/and ambiguous; try more specific search to find more relevant results</h5>
+		<div class="single-result">
+		<h5 id="res-warn">Hint: Your search seems to be too general or/and ambiguous; try more specific search to find more relevant results</h5>
 		</div>
 	
 	<?php
