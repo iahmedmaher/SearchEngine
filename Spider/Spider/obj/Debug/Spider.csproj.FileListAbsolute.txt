@@ -63,3 +63,5 @@ C:\Users\karim\Downloads\CUFE\APT\GIT2\SearchEngine\Spider\Spider\obj\Debug\Spid
 C:\Users\karim\Downloads\CUFE\APT\GIT2\SearchEngine\Spider\Spider\obj\Debug\Spider.csproj.GenerateResource.Cache
 C:\Users\karim\Downloads\CUFE\APT\GIT2\SearchEngine\Spider\Spider\obj\Debug\Spider.exe
 C:\Users\karim\Downloads\CUFE\APT\GIT2\SearchEngine\Spider\Spider\obj\Debug\Spider.pdb
+C:\Users\karim\Downloads\CUFE\APT\GIT2\SearchEngine\Spider\Spider\bin\Debug\Newtonsoft.Json.dll
+C:\Users\karim\Downloads\CUFE\APT\GIT2\SearchEngine\Spider\Spider\bin\Debug\Newtonsoft.Json.xml

@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using HtmlAgilityPack;
 
+
 namespace Spider
 {
     class HtmlParser
@@ -53,7 +54,7 @@ namespace Spider
             var titletag = doc.DocumentNode.SelectSingleNode("//title");
             
             if (titletag != null)
-                title = HttpUtility.HtmlDecode(titletag.InnerHtml).Trim();
+                title = HttpUtility.HtmlDecode(titletag.InnerText).Trim();
 
             SetPlainText();
         }
@@ -213,7 +214,7 @@ namespace Spider
             double divider = 0;
 
             Dictionary<string, double> dictionary = new Dictionary<string, double>();
-
+            
             GetMeta(dictionary);
 
             string word;
@@ -252,6 +253,15 @@ namespace Spider
                 Nodes.ToList().ForEach(N => N.Remove());
             }
 
+            foreach (string LinkWord in GetLinkWords())
+            {
+                word = p.stem(LinkWord);
+                if (dictionary.ContainsKey(word))
+                    dictionary[word] += 25;
+                else
+                    dictionary[word] = 25;
+            }
+
             if (dictionary.Keys.Count > 0)
                 divider = dictionary.Values.Max();
 
@@ -266,15 +276,7 @@ namespace Spider
                 dictionary[word] += 1.25;
             else
                 dictionary[word] = 1.25;
-
-            foreach (string LinkWord in GetLinkWords())
-            {
-                word = p.stem(LinkWord);
-                if (dictionary.ContainsKey(word))
-                    dictionary[word] += 0.15;
-                else
-                    dictionary[word] = 0.8;
-            }
+            
             return dictionary;
         }
 
@@ -287,6 +289,29 @@ namespace Spider
             {
                 yield return mtch.Value;
             }
+        }
+
+        public Dictionary<string, string> GetOrderedLists()
+        {
+            Dictionary<string, string> ols = new Dictionary<string, string>();
+
+            var ol_elemts = doc.DocumentNode.SelectNodes("//ol");
+
+            if (ol_elemts == null)
+                return ols;
+
+            foreach (var list in ol_elemts)
+            {
+                var list_header = doc.DocumentNode.SelectSingleNode(list.XPath + "/preceding-sibling::*[self::h2 or self::h3 or self::h4][1]");
+
+                if (list_header != null && !Regex.IsMatch(list_header.InnerText, "table of content", RegexOptions.IgnoreCase))
+                {
+                    string[] list_items = list.Descendants("li").Select(li => HttpUtility.HtmlDecode(li.InnerText).Trim()).ToArray();
+
+                    ols.Add(list_header.InnerText, Newtonsoft.Json.JsonConvert.SerializeObject(list_items));
+                }
+            }
+            return ols;
         }
 
         public string GetDomainWord()

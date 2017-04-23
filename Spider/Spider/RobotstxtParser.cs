@@ -41,6 +41,8 @@ namespace Spider
                     return true;
                 }
 
+                robotstxt = Regex.Replace(robotstxt, @"#.*?$", "", RegexOptions.Multiline);
+
                 string robotsmatch = Regex.Match(robotstxt, @"(?<=User\-agent\: \*).+?(?=(User-agent\:)|$)", RegexOptions.Singleline | RegexOptions.IgnoreCase | RegexOptions.Compiled).Value;
 
                 Disallows = Regex.Matches(robotsmatch, @"(?<=Disallow: ).+?(?=(\u000D|( +#)|$))", RegexOptions.Multiline | RegexOptions.IgnoreCase | RegexOptions.Compiled);
