@@ -18,9 +18,9 @@ namespace Spider
            ***/
 
         private static readonly Dictionary<string, int> Ranker = new Dictionary<string, int>(){
-           {"keywords",50 },
            {"title",50},
-           {"description",50 },
+           {"keywords",40 },
+           {"description",30 },
            {"h1",10},
            {"h2",8},
            {"h3",6},
