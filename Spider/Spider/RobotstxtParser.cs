@@ -1,4 +1,5 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -16,8 +17,15 @@ namespace Spider
 
         public static bool Approved(string link)
         {
-            string domain = new System.Uri(link).Host;
-
+            string domain;
+            try
+            {
+                domain = new Uri(link).Host;
+            }
+            catch(Exception)
+            {
+                return false;
+            }
             bool allowed = true;
             MatchCollection Disallows;
             MatchCollection Allows;

@@ -297,20 +297,41 @@ namespace Spider
 
             var ol_elemts = doc.DocumentNode.SelectNodes("//ol");
 
-            if (ol_elemts == null)
-                return ols;
-
-            foreach (var list in ol_elemts)
+            if (ol_elemts != null)
             {
-                var list_header = doc.DocumentNode.SelectSingleNode(list.XPath + "/preceding-sibling::*[self::h2 or self::h3 or self::h4][1]");
-
-                if (list_header != null && !Regex.IsMatch(list_header.InnerText, "table of content", RegexOptions.IgnoreCase))
+                foreach (var list in ol_elemts)
                 {
-                    string[] list_items = list.Descendants("li").Select(li => HttpUtility.HtmlDecode(li.InnerText).Trim()).ToArray();
+                    var list_header = doc.DocumentNode.SelectSingleNode(list.XPath + "/preceding-sibling::*[self::h2 or self::h3 or self::h4][1]");
 
-                    ols.Add(list_header.InnerText, Newtonsoft.Json.JsonConvert.SerializeObject(list_items));
+                    if (list_header != null && !Regex.IsMatch(list_header.InnerText, "table of content", RegexOptions.IgnoreCase))
+                    {
+                        string[] list_items = list.Descendants("li").Select(li => HttpUtility.HtmlDecode(li.InnerText).Trim()).ToArray();
+
+                        string h = HttpUtility.HtmlDecode(list_header.InnerText).Trim();
+
+                        if (!ols.ContainsKey(h))
+                            ols.Add(h, Newtonsoft.Json.JsonConvert.SerializeObject(list_items));
+                    }
                 }
             }
+            
+
+            var others = doc.DocumentNode.SelectNodes("//*[starts-with(., 'Step ') and starts-with(translate(name(),'H','h'),'h')]");
+
+            if (others != null)
+            {
+                var header = doc.DocumentNode.SelectSingleNode("//h1");
+                if (header != null)
+                {
+                    string[] steps = others.Select(item => HttpUtility.HtmlDecode(item.InnerText).Trim()).ToArray();
+
+                    string h = HttpUtility.HtmlDecode(header.InnerText).Trim();
+
+                    if (!ols.ContainsKey(h))
+                        ols.Add(h, Newtonsoft.Json.JsonConvert.SerializeObject(steps));
+                }
+            }
+
             return ols;
         }
 

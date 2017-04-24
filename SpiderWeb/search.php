@@ -2,6 +2,7 @@
 
 require_once("search.inc.php");
 require_once("kemo_define.php");
+require_once("kemo_steps.php");
 require_once("stopwords.php");
 
 if(empty($_GET['q']) && !isset($_GET["advanced"])){
@@ -107,8 +108,67 @@ $(document).ready(function(){
 		</div>
 		
 	<?php
+		elseif(count(explode(' ',$user_query))>3):
+			$listfinder=new ListSearch($user_query);
+			$listfinder->excute();
+			
+			if($listfinder->HasList()): 
+				$url=$listfinder->getPageUrl();
+				$title=$listfinder->getPageTitle();
+	?>
+			<div class="single-result" id="definition-card">
+			<h2><?php echo $listfinder->getHeader() ?></h2>
+			<p><ol>
+				<?php
+				$arr=$listfinder->getList();
+				$i=0;
+				foreach($arr as $item):
+					?>
+					<li>
+					<?php 
+					if(strlen($item) > 80):
+	                $item = substr($item,0,80);
+					echo substr($item,0,strrpos($item,' '))." ...";
+					else:
+					echo $item;
+					endif;
+					?>
+					</li>
+					<?php
+					$i++;
+					if($i>=5)break;
+				endforeach;
+				?>
+			</ol></p><p>
+			<a href="<?php echo $url ?>" title="<?php echo ($title==""?"(No Title)":$title) ?>">
+				<h3>
+					<?php
+					if($title==""):
+						echo "(No Title)";
+					elseif(strlen($title) > 60):
+						$str = substr($title,0,55);
+						echo substr($str,0,strrpos($str,' '))." ...";
+					else:
+						echo $title;
+					endif;
+					?>
+				</h3>
+			</a>
+			<cite class="ellipses">
+            <?php
+            if(strlen($url > 100)):
+	            echo substr($url,0,100)." ...";
+            else:
+	            echo $url;
+            endif;
+            ?>
+			</cite></p>
+			</div>		
+	<?php			
+			endif;
 		endif;
 	endif;
+	
     while($row = $result->fetchArray()):
     ?>
 

@@ -1,5 +1,13 @@
 body {
 	font-family:Verdana,sans-serif;
+	margin:0;
+}
+
+ol {
+	border: 0;
+    margin: 0;
+    padding-left: 20px;
+	padding-right: 20px;
 }
 
 .ellipses {
@@ -21,10 +29,12 @@ body {
 }
 
 #definition-card {
-	padding-left: 9px;
-	padding-right: 9px;
+	padding-left: 20px;
+	padding-right: 20px;
 	background: rgba(250, 250, 250, 0.65);
-	border: solid 1px #ebebeb;
+	/* border: solid 1px #ebebeb; */
+	border: solid 1px rgba(250, 250, 250, 0.65);
+	box-shadow: 0 2px 2px 0px rgba(0,0,0,0.16), 0 0 0px 1px rgba(0,0,0,0.08);
 }
 
 .pagination {
@@ -52,8 +62,8 @@ body {
 	display: flex;
 	background-color: #fafafa;
     border-bottom: 1px solid #ebebeb;
-    /*width: 100%;*/
-	margin: -8px;
+    width: 100%;
+	/*margin: -8px;*/
 	margin-bottom: 10px;
 }
 
@@ -62,6 +72,8 @@ body {
     padding: 7px;
     color: #9F6000;
     background-color: #FEEFB3;
+	margin-bottom: -8px;
+	margin-top: -8px;
 }
 
 .small-logo {
@@ -78,8 +90,8 @@ body {
 }
 
 #results-area {
-	margin: 8px;
-	
+	margin-left: 16px;
+	margin-right: 16px;
 }
 
 .single-result {
