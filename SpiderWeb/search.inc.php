@@ -1,5 +1,6 @@
 <?php
 require_once("porter.inc.php");
+require_once("database.php");
 
 class Searcher
 {
@@ -9,7 +10,7 @@ class Searcher
 
 	public function __construct()
 	{
-		$this->conn = new sqlite3("Index.db"); 
+		$this->conn = Database::getInstance();
 	}
 	
 	public function GetContentByID($LID)
@@ -23,9 +24,9 @@ class Searcher
 		return $this->Rcount;
 	}
 	
-	function __destruct()
+	public function __destruct()
 	{
-		$this->conn->close();	
+		//$this->conn->close();	
 	}
 	
 }
