@@ -344,6 +344,9 @@ namespace Spider
             if (arr.Count() == arr2.Count())
                 return arr.ElementAt(arr.Count() - 2);
 
+            if (arr2.Count() == 0)
+                return arr.First();
+
             return arr2.Last();
         }
 

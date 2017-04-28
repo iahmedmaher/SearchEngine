@@ -11,10 +11,10 @@
     <link href="css/search.css" rel="stylesheet" type="text/css">
     <link href="css/suggestions.css" rel="stylesheet" type="text/css">
     <link href="css/main.css" rel="stylesheet" type="text/css">
-    <link href="css/jquery-ui.min.css" rel="stylesheet" type="text/css">
+    <link href="css/w3.css" rel="stylesheet" type="text/css">
 
     <script src="js/jquery.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/jquery.ui/1.11.4/jquery-ui.min.js"></script>
+   
     <script src="js/main.js"></script>
 
 
@@ -39,35 +39,44 @@
         <a href="#" onclick="open_advanced_s()">Advanced Search</a>
     </div>
 
+	
     <!--- Advanced search options -->
-    <div id="dialog-div" title="Advanced Search" style="display:none">
-        <form action="search.php" id="advanced-search">
-            <label for="phrase">Exact phrase</label>
-            <input type="text" name="phrase" class="text ui-widget-content ui-corner-all advanceditem" autocomplete="off" data-initial="1" data-valid="false" />
+    <div id="dialog-div" class="w3-modal w3css" title="Advanced Search" style="display:none">
+		<div class="w3-modal-content w3-card-4">
+		   <header class="w3-container w3-red"> 
+			  <span onclick="close_dialog()" class="w3-button w3-display-topright">&times;</span>
+			  <h2>Advanced Search</h2>
+			</header>
+				
+			<form action="search.php" id="advanced-search" class="w3-container">
+			<p>
+				<label for="phrase">Exact phrase</label>
+				<input type="text" name="phrase" class="w3-input" autocomplete="off" />
 
-            <br />
+				<br />
 
-            <label for="contains">Contains these words</label>
-            <input type="text" name="contains" class="text ui-widget-content ui-corner-all advanceditem" autocomplete="off" data-initial="1" data-valid="false" />
+				<label for="contains">Contains these words</label>
+				<input type="text" name="contains" class="w3-input" autocomplete="off" />
+				
+				<br />
 
-            <br />
+				<label for="ncontains">Does not contain these words</label>
+				<input type="text" name="ncontains" class="w3-input" autocomplete="off" />
+				
+				<br />
 
-            <label for="ncontains">Does not contain these words</label>
-            <input type="text" name="ncontains" class="text ui-widget-content ui-corner-all advanceditem" autocomplete="off" data-initial="1" data-valid="false" />
+				<label for="nearw">These words must be near each other</label>
+				<input type="text" name="nearw" class="w3-input" autocomplete="off" />
+				
+				<br />
 
-            <br />
-
-            <label for="nearw">These words must be near each other</label>
-            <input type="text" name="nearw" class="text ui-widget-content ui-corner-all advanceditem" autocomplete="off" data-initial="1" data-valid="false" />
-
-            <br />
-
-            <label for="neard">with maximum distance of </label>
-            <input type="text" name="neard" class="text ui-widget-content ui-corner-all advanceditem" autocomplete="off" data-initial="1" data-valid="false" value="10" />
-
-            <input type="hidden" name="advanced" value="true" />
-
-        </form>
+				<label for="neard">with maximum distance of </label>
+				<input type="text" name="neard" class="w3-input" autocomplete="off" />
+				</p><p>
+				<input type="hidden" name="advanced" value="true" />
+				<button type="button" class="w3-btn w3-padding w3-red" style="width:120px" onclick="submit_search()">Search <img src="css/images/search-icon.svg"/></button></p>
+			</form>
+		</div>
     </div>
     <!--- End Advanced search options -->
 

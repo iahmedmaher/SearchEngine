@@ -58,6 +58,7 @@ namespace Spider
                 {
                     if (!response.Headers[HttpResponseHeader.ContentType].Contains(ContentType))
                     {
+                        DownloadedLinks.TryAdd(Link, Link);
                         return null;
                     }
 

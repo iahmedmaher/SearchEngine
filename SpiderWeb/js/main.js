@@ -3,7 +3,6 @@ var currentlistitem = 0;
 var currentlistcount = 0;
 
 $(document).ready(function() {
-	init_dialog();
 	$("form").submit(function(){
 		$("#loading").show();
 		$("body").css({"overflow":"hidden"});
@@ -96,17 +95,7 @@ function setup()
 	});
 }
 
-function init_dialog()
-{
-	$("#dialog-div").dialog({
-		autoOpen: false,
-		modal: true,
-		buttons: {
-			"Ok": submit_search,
-			"Cancel": close_dialog,
-		}
-	});
-}
+
 
 function submit_search()
 {
@@ -115,11 +104,11 @@ function submit_search()
 
 function open_advanced_s()
 {
-	 $("#dialog-div").dialog("open");
+	 $("#dialog-div").css({"display":"block"});
 }
 
 function close_dialog()
 {
-	$("#dialog-div").dialog("close");
+	$("#dialog-div").css({"display":"none"});
 	window.scrollTo(0,1);
 }
