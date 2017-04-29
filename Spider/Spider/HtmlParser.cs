@@ -12,11 +12,7 @@ namespace Spider
 {
     class HtmlParser
     {
-        /*** Ranking:
-           * keywords(25) -> Title (30) -> description (20) -> H1 (10) -> H2 (8) -> H3 (6) -> H4 (5) -> H5 (5) -> H6 (5) -> b or strong (3) -> P or others (1)
-           *
-           ***/
-
+        //Ranking
         private static readonly Dictionary<string, int> Ranker = new Dictionary<string, int>(){
            {"title",50},
            {"keywords",40 },
@@ -273,9 +269,9 @@ namespace Spider
             word = p.stem(GetDomainWord());
 
             if (dictionary.ContainsKey(word))
-                dictionary[word] += 1.25;
+                dictionary[word] += 0.25;
             else
-                dictionary[word] = 1.25;
+                dictionary[word] = 1;
             
             return dictionary;
         }

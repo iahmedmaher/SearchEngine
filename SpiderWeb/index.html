@@ -36,14 +36,14 @@
             </form>
         </div>
         <br />
-        <a href="#" onclick="open_advanced_s()">Advanced Search</a>
+        <button class="w3-btn w3-indigo w3css"onclick="open_advanced_s()">Advanced Search</button>
     </div>
 
 	
     <!--- Advanced search options -->
     <div id="dialog-div" class="w3-modal w3css" title="Advanced Search" style="display:none">
 		<div class="w3-modal-content w3-card-4">
-		   <header class="w3-container w3-red"> 
+		   <header class="w3-container w3-indigo"> 
 			  <span onclick="close_dialog()" class="w3-button w3-display-topright">&times;</span>
 			  <h2>Advanced Search</h2>
 			</header>
@@ -74,7 +74,7 @@
 				<input type="text" name="neard" class="w3-input" autocomplete="off" />
 				</p><p>
 				<input type="hidden" name="advanced" value="true" />
-				<button type="button" class="w3-btn w3-padding w3-red" style="width:120px" onclick="submit_search()">Search <img src="css/images/search-icon.svg"/></button></p>
+				<button type="button" class="w3-btn w3-padding w3-indigo" style="width:120px" onclick="submit_search()">Search <img src="css/images/search-icon.svg"/></button></p>
 			</form>
 		</div>
     </div>

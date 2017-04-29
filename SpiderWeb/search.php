@@ -151,9 +151,8 @@ $(document).ready(function(){
     <?php
     endwhile;
     ?>
-
+<div class="pagination-container">
     <div class="pagination">
-
         <?php
         $url = $_SERVER["REQUEST_URI"];
         
@@ -166,35 +165,27 @@ $(document).ready(function(){
         if($page!=0):
         $url=preg_replace("/page=\d{1,4}/i","page=".($page),$url);
         ?>
-
         <a href="<?php echo $url ?>">&laquo;</a>
-
         <?php endif; ?>  
- 
         <?php
         
 		for($i=0;$i<10 and $page_n<=$upperlimit;$i++):
 			$url=preg_replace("/page=\d{1,4}/i","page=".($page_n+1),$url);
 
         ?> 
-  
         <a href="<?php echo $url ?>" <?php echo ($page_n==$page ? 'class="active"':'')?>><?php echo $page_n+1 ?></a>
-  
         <?php 
 			$page_n++;
         endfor; 
         ?>
-  
         <?php
         if($page<$upperlimit):
         $url=preg_replace("/page=\d{1,4}/i","page=".($page+2),$url);
         ?>
         <a href="<?php echo $url ?>">&raquo;</a>
-  
         <?php endif; ?> 
     </div>
-
 </div>
-
+</div>
 </body>
 </html>
