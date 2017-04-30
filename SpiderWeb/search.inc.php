@@ -13,10 +13,18 @@ class Searcher
 		$this->conn = Database::getInstance();
 	}
 	
+	public function GetContentByIDMarked($LID,$query)
+	{
+		$sql="SELECT ".'snippet(PageContent,"<b>","</b>","...",-1,64)'." FROM PageContent WHERE Content MATCH '".$query."' AND LID=".$LID;
+		return $this->conn->query($sql)->fetchArray()[0];
+	}
+	
 	public function GetContentByID($LID)
 	{
 		$sql="SELECT Content FROM PageContent WHERE LID=".$LID;
-		return $this->conn->query($sql)->fetchArray()['Content'];
+		$str=$this->conn->query($sql)->fetchArray()['Content'];
+		$str = substr($str,0,500); 
+		return substr($str,0,strrpos($str,' '))." ...";
 	}
 	
 	public function GetCount()
@@ -38,6 +46,7 @@ class AdvancedSearcher extends Searcher
 	protected $doesntcontains;
 	protected $nearwords;
 	protected $neardist;
+	private $query;
 	
 	public function __construct($exactphrase,$contains,$doesntcontains,$nearwords,$neardist,$page=0)
 	{
@@ -90,6 +99,7 @@ class AdvancedSearcher extends Searcher
 			
 			$sql=$sql.end($near_arr);
 		}
+		$this->query=$sql;
 		
 		$sql=$sql."'";
 		
@@ -100,6 +110,12 @@ class AdvancedSearcher extends Searcher
 		//echo $sql1.$sql;
 		//$x=$conn->escapeString($x);
 		return $this->conn->query($sql1.$sql);	
+	}
+	
+	public function GetContentByIDMarked($LID,$qs)
+	{
+		$sql="SELECT ".'snippet(PageContent,"<b>","</b>","...",-1,64)'." FROM PageContent WHERE Content MATCH '".$this->query."' AND LID=".$LID;
+		return $this->conn->query($sql)->fetchArray()[0];
 	}
 }
 
@@ -173,4 +189,5 @@ class NormalSearcher extends Searcher
 		return $this->conn->query($sql);	
 	}
 }
+
 ?>

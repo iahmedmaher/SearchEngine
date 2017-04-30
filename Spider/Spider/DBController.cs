@@ -84,7 +84,7 @@ namespace Spider
 
             database.ExecuteNonQuery(sql);
 
-            sql = "CREATE VIRTUAL TABLE IF NOT EXISTS PageContent USING fts4 (LID REFERENCES URL (ID) ON DELETE CASCADE ON UPDATE CASCADE, Content TEXT);";
+            sql = "CREATE VIRTUAL TABLE IF NOT EXISTS PageContent USING fts4 (LID REFERENCES URL (ID) ON DELETE CASCADE ON UPDATE CASCADE, Content TEXT,tokenize=porter);";
 
             database.ExecuteNonQuery(sql);
             /*
