@@ -12,6 +12,13 @@ $result = $s->excute();
 
 while($row = $result->fetchArray(SQLITE3_ASSOC))
 {
+	$content=str_replace("<b>","",$s->GetContentByIDMarked($row["ID"],$user_query));
+	$content=str_replace("</b>","",$content);
+	$content=str_replace("\r\n"," ",$content);
+	$content=str_replace("\n"," ",$content);
+	$content=str_replace("\t"," ",$content);
+	$content=str_replace("  ","",$content);
+	$row["content"]=$content;
 	$s_arr[]=$row;
 }
 
