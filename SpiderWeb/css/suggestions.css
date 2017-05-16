@@ -1,4 +1,4 @@
-.autocomplete-suggestions { border: 1px solid #999; background: #fff; cursor: default; overflow: auto; }
+.autocomplete-suggestions { border: 1px solid #999; background: #fff; cursor: default; overflow: auto; z-index:1}
 .autocomplete-suggestion { padding: 0.2px 5px; font-size: 1.2em; white-space: nowrap; overflow: hidden; }
 .autocomplete-selected { background: #f0f0f0; }
 .autocomplete-suggestions b { font-weight: bold; /*color: #3399ff;*/ }
