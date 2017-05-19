@@ -76,7 +76,7 @@ namespace Spider
 
             database.ExecuteNonQuery(sql);
 
-            sql = "CREATE VIRTUAL TABLE IF NOT EXISTS VECTOR USING fts3 (LID REFERENCES URL (ID) ON DELETE CASCADE ON UPDATE CASCADE,Keyword VARCHAR (20) NOT NULL, Rank REAL NOT NULL);";
+            sql = "CREATE VIRTUAL TABLE IF NOT EXISTS VECTOR USING fts4 (LID REFERENCES URL (ID) ON DELETE CASCADE ON UPDATE CASCADE,Keyword VARCHAR (20) , Rank REAL NOT NULL);";
 
             database.ExecuteNonQuery(sql);
 
