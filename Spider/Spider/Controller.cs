@@ -58,6 +58,7 @@ namespace Spider
             ProgressBackupTask = new Task(PeriodicBackup);
             
             reporter = form;
+            //?why 
             MaxThreads = Environment.ProcessorCount;
 
             Database = DBController.GetInstance();

@@ -96,7 +96,11 @@ namespace Spider
 
             Dictionary<string, string> images = doc.ImagesVectors();
 
-            Dictionary<string, double> dictionary = doc.KeywordsVectors();
+            Dictionary<string, double> imagesDictionary = doc.KeywordsVectorsFromImages(images);
+
+            Dictionary<string, double> textDictionary = doc.KeywordsVectorsFromText();
+
+            Dictionary<string, double> dictionary = doc.MergeDictionaries(textDictionary, imagesDictionary);
 
             if (dictionary == null)
                 return;

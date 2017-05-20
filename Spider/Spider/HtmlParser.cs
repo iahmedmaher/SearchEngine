@@ -31,6 +31,8 @@ namespace Spider
            {"body",1}
         };
 
+        private static readonly double imagesRank = 0.1;
+
         private static HashSet<string> stopwords;
 
         private HtmlDocument doc;
@@ -206,7 +208,7 @@ namespace Spider
             return imagesdictionary;
         }
 
-        public Dictionary<string, double> KeywordsVectors()
+        public Dictionary<string, double> KeywordsVectorsFromText()
         {
             double divider = 0;
 
@@ -259,6 +261,39 @@ namespace Spider
             }
 
             return dictionary;
+        }
+
+        public Dictionary<string, double> KeywordsVectorsFromImages(Dictionary<string, string> images)
+        {
+            var imageDictionary = new Dictionary<string, double>();
+            var clairf = new Clairf();
+            foreach (var image in images)
+            {
+                String[] result = clairf.getImageTags(image.Key);
+                if (result != null)
+                    foreach(var tag in result)
+                    {
+                        if (imageDictionary.ContainsKey(tag))
+                            imageDictionary[tag] += imagesRank;
+                        else
+                            imageDictionary.Add(tag, imagesRank);
+                    }
+            }
+
+            return imageDictionary;
+        }
+
+        public Dictionary<string, double> MergeDictionaries(Dictionary<string,double> dict1, Dictionary<string, double> dict2)
+        {
+            foreach (KeyValuePair<string, double> wordVector in dict2)
+            {
+                if (dict1.ContainsKey(wordVector.Key))
+                    dict1[wordVector.Key] += wordVector.Value;
+                else
+                    dict1.Add(wordVector.Key, wordVector.Value);
+            }
+
+            return dict1;
         }
 
         private void GetMeta(Dictionary<string, double> dictionary)

@@ -23,6 +23,7 @@ namespace Spider
             connection = new SQLiteConnection("Data Source=:memory:; Version=3; UTF8Encoding=True;");
             connection.Open();
             string FileName = Properties.Settings.Default.PATH + Properties.Settings.Default.Indexer;
+            //?why backup to memory?
             using (SQLiteConnection sql = new SQLiteConnection("Data Source=" + FileName + "; Version=3; UTF8Encoding=True;"))
             {
                 sql.Open();
