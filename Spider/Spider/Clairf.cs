@@ -11,7 +11,7 @@ namespace Spider
 {
     public class Clairf
     {
-        private readonly static string ACCESS_TOKEN = "Ce57yXsVWDaOtpzNwjhtPXXjjn0oQf";
+        private readonly static string ACCESS_TOKEN = "2ajFHXvliJYCtEdogJX514ZoXDZIq1";
         private static string CLARIFAI_API_URL = "https://api.clarifai.com/v2/models/aaa03c23b3724a16a56b629203edc62c/outputs";
         private HttpClient client;
 

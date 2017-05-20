@@ -31,7 +31,7 @@ namespace Spider
            {"body",1}
         };
 
-        private static readonly double imagesRank = 0.1;
+        private static readonly double imagesRank = 0.01;
 
         private static HashSet<string> stopwords;
 
