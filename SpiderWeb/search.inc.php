@@ -190,4 +190,30 @@ class NormalSearcher extends Searcher
 	}
 }
 
+class ImageSearcher extends Searcher
+{
+	protected $imagequery;
+	
+	public function __construct($userquery,$page=0)
+	{
+		parent::__construct();
+		$this->imagequery=$this->conn->escapeString($userquery);
+		$this->imagequery=preg_replace("/ +?/"," ",$this->imagequery);
+		$this->page=$this->conn->escapeString($page);
+		$this->neardist=4;
+	}
+	
+	public function excute()
+	{
+		$sql = "SELECT URL,Title,TIMESTAMP,ImageLink,ImageAlt FROM URL,Images WHERE URL.ID=Images.LID AND "; 
+		$sql_cond="ImageAlt MATCH '".$this->imagequery."'";
+		$sql=$sql.$sql_cond." LIMIT 30 OFFSET ".$this->page*30;
+		
+		$this->Rcount=$this->conn->query("SELECT count(*) AS C FROM Images WHERE ".$sql_cond)->fetchArray()['C'];
+		
+		return $this->conn->query($sql);	
+	}
+	
+}
+
 ?>

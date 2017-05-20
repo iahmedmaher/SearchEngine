@@ -1,8 +1,34 @@
+$(document).ready(function() {
+	
+	//bind click events
+	var $cell = $('.image__cell');
+
+	$cell.find('.image--basic').click(function() {
+	  var $thisCell = $(this).closest('.image__cell');
+	  
+	  if ($thisCell.hasClass('is-collapsed')) {
+		$cell.not($thisCell).removeClass('is-expanded').addClass('is-collapsed');
+		$thisCell.removeClass('is-collapsed').addClass('is-expanded');
+	  } else {
+		$thisCell.removeClass('is-expanded').addClass('is-collapsed');
+	  }
+	});
+
+	$cell.find('.expand__close').click(function(){
+	  
+	  var $thisCell = $(this).closest('.image__cell');
+	  
+	  $thisCell.removeClass('is-expanded').addClass('is-collapsed');
+	});
+	setup_suggestions();
+});
+
+
 var currentRequest = null;    
 var currentlistitem = 0;
 var currentlistcount = 0;
 
-$(document).ready(function() {
+function setup_suggestions() {
 	$("form").submit(function(){
 		$("#loading").show();
 		$("body").css({"overflow":"hidden"});
@@ -73,10 +99,8 @@ $(document).ready(function() {
         default: return; // exit this handler for other keys
     }
     e.preventDefault(); // prevent the default action (scroll / move caret)
-});
-	
-	
-});
+});	
+}
 
 function setup()
 {
@@ -93,30 +117,4 @@ function setup()
 	$(".autocomplete-suggestion").mouseleave(function(){
 		$(this).removeClass("autocomplete-selected");
 	});
-}
-
-function WebChecked()
-{
-	$("#search-form").attr("action", "search.php");
-}
-
-function ImagesChecked()
-{
-	$("#search-form").attr("action", "ImageSearch.php");
-}
-
-function submit_search()
-{
-	$("#advanced-search").submit();
-}
-
-function open_advanced_s()
-{
-	 $("#dialog-div").css({"display":"block"});
-}
-
-function close_dialog()
-{
-	$("#dialog-div").css({"display":"none"});
-	window.scrollTo(0,1);
 }

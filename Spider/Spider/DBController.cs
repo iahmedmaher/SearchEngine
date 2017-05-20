@@ -76,7 +76,7 @@ namespace Spider
 
             database.ExecuteNonQuery(sql);
 
-            sql = "CREATE VIRTUAL TABLE IF NOT EXISTS VECTOR USING fts3 (LID REFERENCES URL (ID) ON DELETE CASCADE ON UPDATE CASCADE,Keyword VARCHAR (20) NOT NULL, Rank REAL NOT NULL);";
+            sql = "CREATE VIRTUAL TABLE IF NOT EXISTS VECTOR USING fts4 (LID REFERENCES URL (ID) ON DELETE CASCADE ON UPDATE CASCADE,Keyword VARCHAR (20) , Rank REAL NOT NULL);";
 
             database.ExecuteNonQuery(sql);
 
@@ -91,15 +91,17 @@ namespace Spider
             sql = "CREATE TABLE IF NOT EXISTS SearchHistory (Domain VARCHAR(40) NOT NULL, UserId VARCHAR(40) NOT NULL, Count UNSIGNED BIG INT DEFAULT (0), PRIMARY KEY (Domain, UserId));";
 
             database.ExecuteNonQuery(sql);
-            /*
+            
             sql = "CREATE VIRTUAL TABLE IF NOT EXISTS Images USING fts4 (LID REFERENCES URL (ID) ON DELETE CASCADE ON UPDATE CASCADE, ImageLink VARCHAR(150), ImageAlt TEXT);";
 
             database.ExecuteNonQuery(sql);
-
+            
+            /*
             sql = "CREATE VIRTUAL TABLE IF NOT EXISTS StepsSuggestions USING fts4 (LID REFERENCES URL (ID) ON DELETE CASCADE ON UPDATE CASCADE, Header TEXT, List VARCHAR(150));";
 
             database.ExecuteNonQuery(sql);
             */
+
             sql = "PRAGMA synchronous = 0";
 
             database.ExecuteNonQuery(sql);

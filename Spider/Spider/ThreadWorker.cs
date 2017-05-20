@@ -116,7 +116,7 @@ namespace Spider
 
             string PlainText = doc.PlainText();
 
-            //Dictionary<string, string> images = doc.ImagesVectors();
+            Dictionary<string, string> images = doc.ImagesVectors();
             //Dictionary<string, string> ordered_lists = doc.GetOrderedLists();
 
             Dictionary<string, double> dictionary = doc.KeywordsVectors();
@@ -143,6 +143,8 @@ namespace Spider
                 Database.UpdatePageContent(link, PlainText);
                 //if (ordered_lists.Count > 0)
                 //   Database.UpdatePageStepsList(link, ordered_lists);
+                if (images.Count > 0)
+                    Database.AddPageImages(link, images);
             }
             else
             {
@@ -152,8 +154,8 @@ namespace Spider
 
                 //if (ordered_lists.Count > 0) 
                 //    Database.AddPageStepsList(link, ordered_lists);
-                //if (images.Count > 0)
-                //  Database.AddPageImages(link, images);
+                if (images.Count > 0)
+                  Database.AddPageImages(link, images);
             }
 
 

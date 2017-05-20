@@ -35,8 +35,21 @@
                 <button type="submit" value="Search">Search</button>
             </form>
         </div>
+        
+		<br />
+		<div style="width:100%;display: flex">
+		<form class="centered">
+			
+			<input class="w3-check" type="radio" name="WebImgSelect" value="Web" onclick="WebChecked()" checked />
+			<label for="WebRadioButton">Web</label>
+			
+			<input class="w3-check" type="radio" name="WebImgSelect" value="Images" onclick="ImagesChecked()"/>
+			<label for="ImagesRadioButton">Images</label>
+		</form>
+		</div>
         <br />
-        <button class="w3-btn w3-indigo w3css"onclick="open_advanced_s()">Advanced Search</button>
+		
+        <button class="w3-btn w3-indigo w3css main"onclick="open_advanced_s()">Advanced Search</button>
     </div>
 
 	
