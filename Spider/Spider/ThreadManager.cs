@@ -19,6 +19,7 @@ namespace Spider
         public ThreadManager(GUI RP)
         {
             Database = DBController.GetInstance();
+            HttpDownloader.GetInstance();
             ClosingLock = new object();
             reporter = RP;
             ThreadCount = 0;

@@ -1,4 +1,5 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -16,8 +17,15 @@ namespace Spider
 
         public static bool Approved(string link)
         {
-            string domain = new System.Uri(link).Host;
-
+            string domain;
+            try
+            {
+                domain = new Uri(link).Host;
+            }
+            catch(Exception)
+            {
+                return false;
+            }
             bool allowed = true;
             MatchCollection Disallows;
             MatchCollection Allows;
@@ -32,7 +40,7 @@ namespace Spider
             }
             else
             {
-                string robotstxt = HttpDownloader.GetRobotsTxt(domain);
+                string robotstxt = HttpDownloader.GetInstance().GetRobotsTxt(domain);
 
                 if (robotstxt == null)
                 {
@@ -40,6 +48,8 @@ namespace Spider
                     AllowCache.TryAdd(domain, null);
                     return true;
                 }
+
+                robotstxt = Regex.Replace(robotstxt, @"#.*?$", "", RegexOptions.Multiline);
 
                 string robotsmatch = Regex.Match(robotstxt, @"(?<=User\-agent\: \*).+?(?=(User-agent\:)|$)", RegexOptions.Singleline | RegexOptions.IgnoreCase | RegexOptions.Compiled).Value;
 

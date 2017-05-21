@@ -22,10 +22,55 @@ namespace Spider
             if (Controller.OperationCancelled)
                 return;
 
+            HttpDownloader downloader = HttpDownloader.GetInstance();
+
             string link = (obj as ThreadParameter).link;
             ConcurrentQueue<string> Scheduled_links = (obj as ThreadParameter).queue;
 
             bool Revisted = false;
+            
+            if(downloader.IsVisited(link))
+            {
+                Database.LinkHit(downloader.GetRedirectOf(link));
+                return;
+            }
+            /*
+            else if (Database.LinkExists(link))
+            {
+                Database.LinkHit(link);
+
+                if ((DateTime.Now - Database.GetLinkDate(link).GetValueOrDefault()).TotalDays >= 7)
+                {
+                    Revisted = true;
+                }
+                else
+                {
+                    return;
+                }
+            }
+            */
+            if (!RobotstxtParser.Approved(link))
+            {
+                return;
+            }
+
+
+            if (Controller.OperationCancelled)
+                return;
+
+            reporter.Invoke(reporter.ReportStartProcessing, link);
+
+            var response = downloader.GetHtml(link);
+
+            if (Controller.OperationCancelled)
+                return;
+
+            if (response == null)
+                return;
+            
+            HtmlParser doc = new HtmlParser(response, link);
+
+            link = downloader.GetRedirectOf(link);  //Get reponse redirect link
 
             if (Database.LinkExists(link))
             {
@@ -40,29 +85,6 @@ namespace Spider
                     return;
                 }
             }
-
-            if (!RobotstxtParser.Approved(link))
-            {
-                return;
-            }
-
-
-            if (Controller.OperationCancelled)
-                return;
-
-            reporter.Invoke(reporter.ReportStartProcessing, link);
-
-            var response = HttpDownloader.GetHtml(link);
-
-            if (Controller.OperationCancelled)
-                return;
-
-            if (response == null)
-                return;
-            
-            HtmlParser doc = new HtmlParser(response.Item1, link);
-
-            link = response.Item2;  //Get reponse redirect link
 
             int linkscount = 0;
 
@@ -95,6 +117,7 @@ namespace Spider
             string PlainText = doc.PlainText();
 
             Dictionary<string, string> images = doc.ImagesVectors();
+            //Dictionary<string, string> ordered_lists = doc.GetOrderedLists();
 
             Dictionary<string, double> imagesDictionary = doc.KeywordsVectorsFromImages(images);
 
@@ -122,13 +145,21 @@ namespace Spider
                 Database.UpdateLinkTitle(link, title);
                 Database.UpdatePageVector(link, dictionary);
                 Database.UpdatePageContent(link, PlainText);
+                //if (ordered_lists.Count > 0)
+                //   Database.UpdatePageStepsList(link, ordered_lists);
+                if (images.Count > 0)
+                    Database.AddPageImages(link, images);
             }
             else
             {
                 Database.AddLink(link, title, linkscount);
                 Database.AddPageVector(link, dictionary);
                 Database.AddPageContent(link, PlainText);
-                Database.AddPageImages(link, images);
+
+                //if (ordered_lists.Count > 0) 
+                //    Database.AddPageStepsList(link, ordered_lists);
+                if (images.Count > 0)
+                  Database.AddPageImages(link, images);
             }
 
 

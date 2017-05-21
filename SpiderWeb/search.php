@@ -15,7 +15,7 @@ if(!isset($_GET["advanced"]))
 }
 
 if(isset($_GET["page"]))
-	$page=$_GET["page"];
+	$page=$_GET["page"]-1;
 else
 	$page=0;
 
@@ -43,7 +43,7 @@ $time_post = microtime(true);
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <meta charset="UTF-8">
 <title>
-<?php  echo isset($_GET["advanced"])?"Advanced Search":$user_query ?> - KEMO'S Search Engine
+<?php  echo isset($_GET["advanced"])?"Advanced Search":$_GET["q"] ?> - KEMO'S Search Engine
 </title>
 
 <link href="css/search.css" rel="stylesheet" type="text/css">
@@ -74,7 +74,7 @@ $(document).ready(function(){
 <div id="res-searchbar-div">
 	<div class="results-search-bar">
 		<form class="search_bar large main" action="search.php" method="GET" id="search-form">
-		  <input type="text" placeholder="Search KEMO's for anything" name="q" id="query-text" autocomplete="off" value="<?php echo isset($_GET["advanced"])?"Advanced Search":$_GET["q"] ?>"/>
+		  <input type="text" placeholder="Search KEMO's for anything" name="q" id="query-text" autocomplete="off" value="<?php echo isset($_GET["advanced"])?"":$_GET["q"] ?>"/>
 		  <button type="submit" value="Search">Search</button>
 		  <div class="autocomplete-suggestions" style="position: absolute; width: 90%; max-height: 300px; z-index: 9999; display: none;"></div>
 		</form>
@@ -93,8 +93,8 @@ $(document).ready(function(){
 		if($defineterm->is_ambiguous()):
 	?>
 		
-		<div class="single-result" id="results-warn">
-		<h5>Hint: Your search seems to be too general or/and ambiguous; try more specific search to find more relevant results</h5>
+		<div class="other">
+		<h5 id="res-warn">Hint: Your search seems to be too general or/and ambiguous; try more specific search to find more relevant results</h5>
 		</div>
 	
 	<?php
@@ -109,6 +109,7 @@ $(document).ready(function(){
 	<?php
 		endif;
 	endif;
+	
     while($row = $result->fetchArray()):
     ?>
 
@@ -140,9 +141,16 @@ $(document).ready(function(){
             <span class="date"><?php echo $row["TIMESTAMP"] ?> - </span>
         <span> 
             <?php 
-			$str = $s->GetContentByID($row["ID"]);
-			$str = substr($str,0,500); 
-			echo substr($str,0,strrpos($str,' '))." ...";
+			if(isset($user_query))
+				$str = $s->GetContentByIDMarked($row["ID"],$user_query);
+			else
+				$str = $s->GetContentByIDMarked($row["ID"],null);
+			
+			if(empty($str))
+				$str = $s->GetContentByID($row["ID"]);
+			
+			echo $str;
+			
 			?>
         </span>
     </div>
@@ -150,9 +158,8 @@ $(document).ready(function(){
     <?php
     endwhile;
     ?>
-
+<div class="pagination-container">
     <div class="pagination">
-
         <?php
         $url = $_SERVER["REQUEST_URI"];
         
@@ -163,37 +170,29 @@ $(document).ready(function(){
 		$upperlimit = floor(($s->GetCount()-1)/10);
 		
         if($page!=0):
-        $url=preg_replace("/page=\d{1,4}/i","page=".($page-1),$url);
+        $url=preg_replace("/page=\d{1,4}/i","page=".($page),$url);
         ?>
-
         <a href="<?php echo $url ?>">&laquo;</a>
-
         <?php endif; ?>  
- 
         <?php
         
 		for($i=0;$i<10 and $page_n<=$upperlimit;$i++):
-			$url=preg_replace("/page=\d{1,4}/i","page=".($page_n),$url);
+			$url=preg_replace("/page=\d{1,4}/i","page=".($page_n+1),$url);
 
         ?> 
-  
         <a href="<?php echo $url ?>" <?php echo ($page_n==$page ? 'class="active"':'')?>><?php echo $page_n+1 ?></a>
-  
         <?php 
 			$page_n++;
         endfor; 
         ?>
-  
         <?php
         if($page<$upperlimit):
-        $url=preg_replace("/page=\d{1,4}/i","page=".($page+1),$url);
+        $url=preg_replace("/page=\d{1,4}/i","page=".($page+2),$url);
         ?>
         <a href="<?php echo $url ?>">&raquo;</a>
-  
         <?php endif; ?> 
     </div>
-
 </div>
-
+</div>
 </body>
 </html>

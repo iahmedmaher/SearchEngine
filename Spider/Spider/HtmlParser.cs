@@ -7,19 +7,16 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using HtmlAgilityPack;
 
+
 namespace Spider
 {
     class HtmlParser
     {
-        /*** Ranking:
-           * keywords(25) -> Title (30) -> description (20) -> H1 (10) -> H2 (8) -> H3 (6) -> H4 (5) -> H5 (5) -> H6 (5) -> b or strong (3) -> P or others (1)
-           *
-           ***/
-
+        //Ranking
         private static readonly Dictionary<string, int> Ranker = new Dictionary<string, int>(){
-           {"keywords",50 },
            {"title",50},
-           {"description",50 },
+           {"keywords",40 },
+           {"description",30 },
            {"h1",10},
            {"h2",8},
            {"h3",6},
@@ -53,9 +50,9 @@ namespace Spider
             doc.DocumentNode.Descendants().Where(n => n.Name == "script" || n.Name == "style" || n.Name == "noscript" || n.NodeType == HtmlNodeType.Comment).ToList().ForEach(n => n.Remove());
 
             var titletag = doc.DocumentNode.SelectSingleNode("//title");
-
+            
             if (titletag != null)
-                title = HttpUtility.HtmlDecode(titletag.InnerHtml);
+                title = HttpUtility.HtmlDecode(titletag.InnerText).Trim();
 
             SetPlainText();
         }
@@ -160,11 +157,11 @@ namespace Spider
             string keywords = GetMetaKeywords();
             if (description != null)
             {
-                text += description;
+                text += (description + ' ');
             }
             if (keywords != null)
             {
-                text += keywords;
+                text += (keywords + ' ');
             }
             PlainString = text + HttpUtility.HtmlDecode(string.Join(" ", doc.DocumentNode.Descendants()
                         .Where(n => !n.HasChildNodes && !string.IsNullOrWhiteSpace(n.InnerText))
@@ -210,10 +207,12 @@ namespace Spider
 
         public Dictionary<string, double> KeywordsVectorsFromText()
         {
+            IStemmer p = new Porter2();
+
             double divider = 0;
 
             Dictionary<string, double> dictionary = new Dictionary<string, double>();
-
+            
             GetMeta(dictionary);
 
             string word;
@@ -239,7 +238,6 @@ namespace Spider
 
                         if (!stopwords.Contains(word))
                         {
-                            IStemmer p = new Porter2();
                             word = p.stem(word);
 
                             if (dictionary.ContainsKey(word))
@@ -253,14 +251,101 @@ namespace Spider
                 Nodes.ToList().ForEach(N => N.Remove());
             }
 
-            divider = dictionary.Values.Max();
+            foreach (string LinkWord in GetLinkWords())
+            {
+                word = p.stem(LinkWord);
+                if (dictionary.ContainsKey(word))
+                    dictionary[word] += 25;
+                else
+                    dictionary[word] = 25;
+            }
 
-            foreach(var Key in dictionary.Keys.ToList())
+            if (dictionary.Keys.Count > 0)
+                divider = dictionary.Values.Max();
+
+            foreach (var Key in dictionary.Keys.ToList())
             {
                 dictionary[Key] = Math.Round(dictionary[Key] / divider, 4);
             }
 
+            word = p.stem(GetDomainWord());
+
+            if (dictionary.ContainsKey(word))
+                dictionary[word] += 0.25;
+            else
+                dictionary[word] = 1;
+            
             return dictionary;
+        }
+
+        public IEnumerable<string> GetLinkWords()
+        {
+            string abs = Regex.Replace(new Uri(SourceLink).AbsolutePath, @"\?.*", string.Empty);
+            abs = Regex.Replace(abs, @"\..*?(?=(\/|$))", string.Empty);
+            var words = Regex.Matches(abs, @"\b[a-zA-Z]{2,}\b");
+            foreach (Match mtch in words)
+            {
+                yield return mtch.Value;
+            }
+        }
+
+        public Dictionary<string, string> GetOrderedLists()
+        {
+            Dictionary<string, string> ols = new Dictionary<string, string>();
+
+            var ol_elemts = doc.DocumentNode.SelectNodes("//ol");
+
+            if (ol_elemts != null)
+            {
+                foreach (var list in ol_elemts)
+                {
+                    var list_header = doc.DocumentNode.SelectSingleNode(list.XPath + "/preceding-sibling::*[self::h2 or self::h3 or self::h4][1]");
+
+                    if (list_header != null && !Regex.IsMatch(list_header.InnerText, "table of content", RegexOptions.IgnoreCase))
+                    {
+                        string[] list_items = list.Descendants("li").Select(li => HttpUtility.HtmlDecode(li.InnerText).Trim()).ToArray();
+
+                        string h = HttpUtility.HtmlDecode(list_header.InnerText).Trim();
+
+                        if (!ols.ContainsKey(h))
+                            ols.Add(h, Newtonsoft.Json.JsonConvert.SerializeObject(list_items));
+                    }
+                }
+            }
+            
+
+            var others = doc.DocumentNode.SelectNodes("//*[starts-with(., 'Step ') and starts-with(translate(name(),'H','h'),'h')]");
+
+            if (others != null)
+            {
+                var header = doc.DocumentNode.SelectSingleNode("//h1");
+                if (header != null)
+                {
+                    string[] steps = others.Select(item => HttpUtility.HtmlDecode(item.InnerText).Trim()).ToArray();
+
+                    string h = HttpUtility.HtmlDecode(header.InnerText).Trim();
+
+                    if (!ols.ContainsKey(h))
+                        ols.Add(h, Newtonsoft.Json.JsonConvert.SerializeObject(steps));
+                }
+            }
+
+            return ols;
+        }
+
+        public string GetDomainWord()
+        {
+            var arr = new UriBuilder(SourceLink).Host.Split('.');
+
+            var arr2 = arr.TakeWhile((string part) => !(part == "com" || part == "org" || part == "net" || part == "int" || part == "edu" || part == "gov" || part == "mil"));
+
+            if (arr.Count() == arr2.Count())
+                return arr.ElementAt(arr.Count() - 2);
+
+            if (arr2.Count() == 0)
+                return arr.First();
+
+            return arr2.Last();
         }
 
         public Dictionary<string, double> KeywordsVectorsFromImages(Dictionary<string, string> images)
@@ -299,15 +384,17 @@ namespace Spider
         private void GetMeta(Dictionary<string, double> dictionary)
         {
             string description = GetMetaDescription();
+            IStemmer p = new Porter2();
 
             if (description != null)
             {
-                var arr = description.Split(' ');
-                foreach (var w in arr)
+                var arr = Regex.Matches(description, @"\b\w{2,}\b", RegexOptions.Compiled);
+
+                foreach (Match m in arr)
                 {
+                    var w = m.Value;
                     if (!stopwords.Contains(w) && w!=string.Empty)
                     {
-                        IStemmer p = new Porter2();
                         string stemmed = p.stem(w);
                         if (dictionary.ContainsKey(stemmed))
                             dictionary[stemmed] += Ranker["keywords"];
@@ -321,11 +408,10 @@ namespace Spider
 
             if (keywords != null)
             {
-                var arr = keywords.Split(',');
-                foreach (var w in arr)
+                var arr = Regex.Matches(keywords, @"\b\w{2,}\b", RegexOptions.Compiled);
+                foreach (Match m in arr)
                 {
-
-                    IStemmer p = new Porter2();
+                    var w = m.Value;
                     string stemmed = p.stem(w);
                     if (w != string.Empty)
                     {
